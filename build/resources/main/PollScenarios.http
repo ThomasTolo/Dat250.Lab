@@ -1,0 +1,92 @@
+@host = http://localhost:8080
+
+### Create user 1
+# @name createUser1
+POST {{host}}/api/users
+Content-Type: application/json
+
+{
+  "username": "u1",
+  "password": "pw1",
+  "email": "u1@example.com"
+}
+
+> {% client.global.set("u1Id", JSON.parse(response.body).id); %}
+
+### List users
+GET {{host}}/api/users
+
+### Create user 2
+# @name createUser2
+POST {{host}}/api/users
+Content-Type: application/json
+
+{
+  "username": "u2",
+  "password": "pw2",
+  "email": "u2@example.com"
+}
+
+> {% client.global.set("u2Id", JSON.parse(response.body).id); %}
+
+### List users again
+GET {{host}}/api/users
+
+### Create a poll (by user 1)
+# @name createPoll
+POST {{host}}/api/polls
+Content-Type: application/json
+
+{
+  "creatorUserId": "{{u1Id}}",
+  "question": "Your favorite color?",
+  "publicPoll": true,
+  "publishedAt": "2025-01-01T00:00:00Z",
+  "validUntil": "2026-01-01T00:00:00Z",
+  "options": [
+    {"caption": "Red",   "presentationOrder": 1},
+    {"caption": "Blue",  "presentationOrder": 2},
+    {"caption": "Green", "presentationOrder": 3}
+  ]
+}
+
+> {% 
+  const body = JSON.parse(response.body);
+  client.global.set("pollId", body.id);
+  const red  = body.options.find(o => o.caption === "Red");
+  const blue = body.options.find(o => o.caption === "Blue");
+  if (red)  client.global.set("redOptionId",  red.id);
+  if (blue) client.global.set("blueOptionId", blue.id);
+%}
+
+### List polls
+GET {{host}}/api/polls
+
+### User 2 votes
+POST {{host}}/api/polls/{{pollId}}/votes
+Content-Type: application/json
+
+{
+  "optionId": "{{redOptionId}}",
+  "voterUserId": "{{u2Id}}",
+  "anonymous": false
+}
+
+### User 2 changes his vote (to Blue)
+POST {{host}}/api/polls/{{pollId}}/votes
+Content-Type: application/json
+
+{
+  "optionId": "{{blueOptionId}}",
+  "voterUserId": "{{u2Id}}",
+  "anonymous": false
+}
+
+### List votes (latest per user)
+GET {{host}}/api/polls/{{pollId}}/votes
+
+### Delete the poll
+DELETE {{host}}/api/polls/{{pollId}}
+
+### List votes again (should be empty)
+GET {{host}}/api/polls/{{pollId}}/votes
