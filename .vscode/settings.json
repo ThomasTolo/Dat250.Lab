@@ -1,3 +1,5 @@
 {
-    "java.compile.nullAnalysis.mode": "automatic"
+    "java.compile.nullAnalysis.mode": "automatic",
+    "rest-client.enableScriptExecution": true,
+    "java.configuration.updateBuildConfiguration": "interactive"
 }

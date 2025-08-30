@@ -2,6 +2,7 @@ plugins {
 	java
 	id("org.springframework.boot") version "3.5.5"
 	id("io.spring.dependency-management") version "1.1.7"
+	
 }
 
 group = "no.hvl"
@@ -27,3 +28,13 @@ dependencies {
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
+
+dependencies {
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    // (only if you use Spring Security) testImplementation("org.springframework.security:spring-security-test")
+}
+
+tasks.test { useJUnitPlatform() }
+
+
+
