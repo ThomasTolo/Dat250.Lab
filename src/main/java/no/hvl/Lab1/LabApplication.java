@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
 @RestController
-public class Lab1Application {
+public class LabApplication {
     public static void main(String[] args) {
-      SpringApplication.run(Lab1Application.class, args);
+      SpringApplication.run(LabApplication.class, args);
     }
     @GetMapping("/hello")
     public String hello(@RequestParam(value = "name", defaultValue = "World") String name) {
