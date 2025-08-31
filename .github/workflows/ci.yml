@@ -6,11 +6,17 @@ on:
   pull_request:
     branches: [ main ]
 
+# 👇 add this block
+permissions:
+  contents: read
+  checks: write
+  # (optional if you want PR comments)
+  # pull-requests: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,7 +37,6 @@ jobs:
       - name: Build & Test
         run: ./gradlew --no-daemon clean test
 
-      # Upload the pretty HTML report: build/reports/tests/test/index.html
       - name: Upload test report
         if: always()
         uses: actions/upload-artifact@v4
@@ -39,7 +44,11 @@ jobs:
           name: test-report
           path: build/reports/tests/test
 
-      # Publish JUnit results to the Actions summary (optional but nice)
+      # optional: verify test results path exists (useful when tests are skipped/fail early)
+      - name: Check results path
+        if: always()
+        run: ls -R build/test-results || true
+
       - name: Publish JUnit results
         if: always()
         uses: dorny/test-reporter@v1
