@@ -1,6 +1,6 @@
 DAT250 – Experiment Assignment 2
-Author: Thomas Tolo Jensen
-File: dat250-expass2.md
+Thomas Tolo Jensen
+
 
 1. Overview
 This assignment was to build a small Poll/Quiz application with Spring Boot, expose a REST API, create manual test scenarios (HTTP client), convert them into automated tests, and finally set up CI with GitHub Actions.
