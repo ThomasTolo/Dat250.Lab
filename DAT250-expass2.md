@@ -20,8 +20,8 @@ Web/API
 UserController – POST /api/users, GET /api/users.
 PollController – POST /api/polls, GET /api/polls, DELETE /api/polls/{id}.
 VoteController – POST /api/polls/{pollId}/votes, GET /api/polls/{pollId}/votes.
-ApiExceptionHandler – returns clean JSON for common errors (404, bad request, etc.).
-HomeController – redirects / → /swagger-ui.html.
+ApiExceptionHandler – returns clean JSON for common errors (404, bad request, etc.). (I added this class for myself to help with debugging as a few problems araised during this weeks Lab. Which I will mention later)
+
 Project layout:
 
 src/
@@ -60,19 +60,17 @@ Gotcha: the REST Client scripting uses JavaScript blocks. I had to parse the JSO
 I converted the scenario into a JUnit 5 test using Spring Boot.
 Final approach: @SpringBootTest + MockMvc (I also tried RestClient in between).
 The test creates users, polls, performs votes, asserts the latest vote, and ensures votes disappear after deleting the poll.
-Key assertions check response codes (201 Created for creates and 200 OK for lists) and parse the JSON bodies using Jackson’s ObjectMapper.
+** Key assertions check response codes (201 Created for creates and 200 OK for lists) and parse the JSON bodies using Jackson’s ObjectMapper. **
 
 5. API documentation (Step 6 – optional)
 I enabled springdoc-openapi so /swagger-ui.html shows API docs.
 Working configuration:
-Spring Boot 3.4.5
+Spring Boot 3.2.5
 springdoc-openapi-starter-webmvc-ui 2.6.0
 Added spring-boot-starter-validation (fixes validator provider warning)
 application.properties (relevant lines):
 springdoc.swagger-ui.path=/swagger-ui.html
-springdoc.packages-to-scan=no.hvl.Lab1.Web
-springdoc.paths-to-match=/api/**
-I also added a simple /api/ping endpoint when debugging to confirm springdoc was able to build the docs before turning it back on for all controllers.
+
 
 6. CI build automation (Step 7)
 I created a GitHub Actions workflow .github/workflows/ci.yml that:
@@ -97,32 +95,25 @@ Downgraded to Spring Boot 3.2.5, kept springdoc at 2.6.0, and removed the extra 
 Added spring-boot-starter-validation.
 Verified /v3/api-docs returns JSON, then opened /swagger-ui.html.
 
-7.2. Silent typo in application.properties
-Symptom: Docs still failing after fixing versions.
-Cause: I had appended text on the same line:
-springdoc.paths-to-match=/api/** is this the mistake
-That string became the actual value.
-Fix: Keep the property value exactly /api/** and move comments to a new line or prefix with #.
-
-7.3. Port 8080 already in use
+7.2. Port 8080 already in use
 Symptom: Spring Boot couldn’t start.
-Fix: Killed the process, or ran with server.port=8081 temporarily.
+Fix: Killed the process using, Lsof -i :8080 and using kill command to end the active session.
 
-7.4. REST Client variables not set
+7.3. REST Client variables not set
 Symptom: Later requests used "{{pollId}}" literally.
 Cause: I forgot to capture IDs after responses.
 Fix: Added JavaScript capture blocks to PollScenarios.http.
 
-7.5. HTTP 400 when creating a poll from REST file
+7.4. HTTP 400 when creating a poll from REST file
 Symptom: Cannot deserialize value of type 'java.util.UUID' from String "{{u1Id}}".
 Cause: I ran “Create Poll” before “Create User 1”; {{u1Id}} wasn’t set.
 Fix: Always execute blocks in order; also added quick “List” steps to verify captured variables.
 
-7.6. JUnit status mismatch (201 vs 200)
+7.5. JUnit status mismatch (201 vs 200)
 Symptom: Test expected 201 Created but controller returned 200 OK.
-Fix: Standardized controllers to return 201 Created on POST (or adjusted test to accept either when appropriate).
+Fix: Standardized controllers to return 201 Created on POST 
 
-7.7. GitHub Actions error: “Resource not accessible by integration”
+7.6. GitHub Actions error: “Resource not accessible by integration”
 Symptom: CI failed at “Publish JUnit results”.
 Cause: The workflow’s GITHUB_TOKEN lacked permissions to create a check run.
 Fix: Added:
