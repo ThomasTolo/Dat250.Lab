@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="no.hvl.Lab1.Lab1ApplicationTests" tests="1" skipped="0" failures="0" errors="0" timestamp="2025-08-31T12:39:32.398Z" hostname="Tolos-MacBook-Air.local" time="0.438">
+  <properties/>
+  <testcase name="contextLoads()" classname="no.hvl.Lab1.Lab1ApplicationTests" time="0.438"/>
+  <system-out><![CDATA[14:39:31.523 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [no.hvl.Lab1.Lab1ApplicationTests]: Lab1ApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+14:39:31.571 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration no.hvl.Lab1.Lab1Application for test class no.hvl.Lab1.Lab1ApplicationTests
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+2025-08-31T14:39:31.735+02:00  INFO 63032 --- [Lab1] [    Test worker] no.hvl.Lab1.Lab1ApplicationTests         : Starting Lab1ApplicationTests using Java 21.0.8 with PID 63032 (started by thoma in /Users/thoma/Desktop/Lab1)
+2025-08-31T14:39:31.736+02:00  INFO 63032 --- [Lab1] [    Test worker] no.hvl.Lab1.Lab1ApplicationTests         : No active profile set, falling back to 1 default profile: "default"
+2025-08-31T14:39:32.391+02:00  INFO 63032 --- [Lab1] [    Test worker] no.hvl.Lab1.Lab1ApplicationTests         : Started Lab1ApplicationTests in 0.76 seconds (process running for 1.351)
+]]></system-out>
+  <system-err><![CDATA[WARNING: A Java agent has been loaded dynamically (/Users/thoma/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.14.13/979ce25f7d3096a2e82214ba7dc972a05ce7a171/byte-buddy-agent-1.14.13.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+]]></system-err>
+</testsuite>
