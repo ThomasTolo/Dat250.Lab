@@ -153,4 +153,99 @@ public List<Vote> votesForPollLatestPerUser(UUID pollId) {
     return new ArrayList<>(latest.values());
 }
 
+// -------- Quizzes --------
+private final Map<UUID, Quiz> quizzes = new HashMap<>();
+private final Map<UUID, QuizSession> quizSessions = new HashMap<>();
+private final Map<UUID, Map<UUID, Integer>> quizPoints = new HashMap<>(); // quizId -> (userId -> points)
+
+public Quiz createQuiz(UUID creatorUserId,
+                      String question,
+                      Instant publishedAt,
+                      Instant validUntil,
+                      Set<String> invitedUsernames,
+                      List<VoteOption> options,
+                      Set<UUID> correctOptionIds) {
+    Quiz quiz = new Quiz();
+    quiz.setId(UUID.randomUUID());
+    quiz.setCreatorUserId(creatorUserId);
+    quiz.setQuestion(question);
+    quiz.setPublishedAt(publishedAt);
+    quiz.setValidUntil(validUntil);
+    if (invitedUsernames != null) quiz.getInvitedUsernames().addAll(invitedUsernames);
+    if (options != null) quiz.setOptions(options);
+    if (correctOptionIds != null) quiz.setCorrectOptionIds(correctOptionIds);
+    quizzes.put(quiz.getId(), quiz);
+    return quiz;
+}
+
+public Collection<Quiz> allQuizzes() { return quizzes.values(); }
+
+public QuizSession createQuizSession(String name, List<Quiz> questions, Set<String> invitedUsernames) {
+    QuizSession session = new QuizSession();
+    session.setName(name);
+    session.setQuestions(questions);
+    if (invitedUsernames != null) session.getInvitedUsernames().addAll(invitedUsernames);
+    quizSessions.put(session.getId(), session);
+    return session;
+}
+
+public List<Map.Entry<UUID, Integer>> getQuizSessionLeaderboard(UUID sessionId) {
+    QuizSession session = quizSessions.get(sessionId);
+    if (session == null) return List.of();
+    Map<UUID, Integer> totalScores = new HashMap<>();
+    for (Quiz quiz : session.getQuestions()) {
+        Map<UUID, Integer> scores = quizPoints.getOrDefault(quiz.getId(), Map.of());
+        for (Map.Entry<UUID, Integer> entry : scores.entrySet()) {
+            totalScores.merge(entry.getKey(), entry.getValue(), Integer::sum);
+        }
+    }
+    List<Map.Entry<UUID, Integer>> leaderboard = new ArrayList<>(totalScores.entrySet());
+    leaderboard.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
+    return leaderboard;
+}
+
+// Cast a vote for a quiz, enforce rules and award points
+public Vote castQuizVote(UUID quizId, UUID optionId, UUID voterUserId) {
+    Quiz quiz = quizzes.get(quizId);
+    if (quiz == null) throw new NoSuchElementException("Quiz not found: " + quizId);
+    Instant now = Instant.now();
+    // 1. Check time window
+    if (quiz.getPublishedAt() != null && now.isBefore(quiz.getPublishedAt()))
+        throw new IllegalStateException("Quiz not yet published");
+    if (quiz.getValidUntil() != null && now.isAfter(quiz.getValidUntil()))
+        throw new IllegalStateException("Quiz deadline passed");
+    // 2. Private quiz: check invite
+    if (voterUserId == null)
+        throw new IllegalStateException("Quiz: must be logged in");
+    User user = users.get(voterUserId);
+    if (user == null || !quiz.getInvitedUsernames().contains(user.getUsername()))
+        throw new IllegalStateException("User not invited to quiz");
+    // 3. Only one vote per user per quiz
+    long userVotes = quiz.getVoteIds().stream()
+            .map(votes::get)
+            .filter(v -> v != null && voterUserId.equals(v.getVoterUserId()))
+            .count();
+    if (userVotes >= 1)
+        throw new IllegalStateException("Vote limit reached for user");
+    // 4. Register vote
+    Vote v = new Vote();
+    v.setId(UUID.randomUUID());
+    v.setPollId(quizId); // quizId used as pollId for votes
+    v.setOptionId(optionId);
+    v.setVoterUserId(voterUserId);
+    v.setAnonymous(false);
+    v.setPublishedAt(now);
+    votes.put(v.getId(), v);
+    quiz.getVoteIds().add(v.getId());
+    user.getVoteIds().add(v.getId());
+    // 5. Award points if correct
+    if (quiz.getCorrectOptionIds().contains(optionId)) {
+        long timeTaken = now.toEpochMilli() - quiz.getPublishedAt().toEpochMilli();
+        int points = Math.max(1, 10000 - (int) timeTaken / 1000); // Example: faster = more points
+        quizPoints.computeIfAbsent(quizId, k -> new HashMap<>())
+                .merge(voterUserId, points, Integer::sum);
+    }
+    return v;
+}
+
 }
