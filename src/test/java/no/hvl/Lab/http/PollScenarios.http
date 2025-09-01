@@ -26,10 +26,9 @@ Content-Type: application/json
 # List users (should include user 1)
 GET {{host}}/api/users
 
-############################################################
+
 # STEP 2 — Create user 2
 # Captures: {{u2Id}}
-############################################################
 # @name createUser2
 POST {{host}}/api/users
 Content-Type: application/json
