@@ -28,63 +28,40 @@ ApiExceptionHandler which returns clean JSON for common errors (I added this cla
 
 3. Manual test scenarios (Step 3)
 
-I used the VS Code REST Client to create PollScenarios.http that exercises the full flow:
-Create user 1 → capture {{u1Id}}
-List users → contains user 1
-Create user 2 → capture {{u2Id}}
-List users → contains both users
-User 1 creates poll → capture {{pollId}}, and {{redOptionId}}, {{blueOptionId}} from the response
-User 2 votes red
-User 2 changes vote to blue
-List votes → shows latest vote for user 2
-Delete poll
-List votes → empty
-Gotcha: the REST Client scripting uses JavaScript blocks. I had to parse the JSON response and set variables:
-> {%
-  const body = JSON.parse(response.body);
-  client.global.set("pollId", body.id);
-  const red = body.options.find(o => o.caption === "Red");
-  if (red) client.global.set("redOptionId", red.id);
-%}
+I used the VS Code REST Client to script a full test flow in my file PollScenarios.http.
+This is what it does:
+Create two users and confirm they appear in the list.
+User 1 creates a poll with red/blue options.
+User 2 votes red, then changes to blue.
+Listing votes shows only the latest vote.
+After deleting the poll, votes are gone.
 
 4. Automated tests (Step 5)
-I converted the scenario into a JUnit 5 test using Spring Boot.
-Final approach: @SpringBootTest + MockMvc (I also tried RestClient in between).
+I converted the scenario into a JUnit test using Spring Boot.
+By using @SpringBootTest + MockMvc (https://www.youtube.com/watch?v=M8iml7gF6ZU) I used this video to help getting started.
 The test creates users, polls, performs votes, asserts the latest vote, and ensures votes disappear after deleting the poll.
-** Key assertions check response codes (201 Created for creates and 200 OK for lists) and parse the JSON bodies using Jackson’s ObjectMapper. **
 
-5. API documentation (Step 6 – optional)
-I enabled springdoc-openapi so /swagger-ui.html shows API docs.
-Working configuration:
-Spring Boot 3.2.5
-springdoc-openapi-starter-webmvc-ui 2.6.0
-Added spring-boot-starter-validation (fixes validator provider warning)
-application.properties (relevant lines):
-springdoc.swagger-ui.path=/swagger-ui.html
+
+5. API documentation (Step 6)
+I enabled API documentation /swagger-ui.html shows API docs. 
+https://springdoc.org spent some time in this web page to get famliar with the library
+
 
 
 6. CI build automation (Step 7)
-I created a GitHub Actions workflow .github/workflows/ci.yml that:
-Checks out the repo
-Sets up JDK 21
-Validates Gradle wrapper
-Runs ./gradlew clean test
-Publishes JUnit summary and uploads the HTML report as an artifact
-The final workflow includes:
-permissions:
-  contents: read
-  checks: write
-This fixed a permission error when the dorny/test-reporter action tried to publish results.
+I set up a GitHub Actions workflow (.github/workflows/ci.yml) to automatically build and test the project. It checks out the code, installs JDK 21, validates the Gradle wrapper, and runs the tests. After that, it publishes a JUnit summary and uploads the HTML test report. 
+I found this video very helpful: https://www.youtube.com/watch?v=n-UMi4_ppDk, and also used https://docs.github.com/en/actions/tutorials/build-and-test-code/java-with-gradle to get familier with githubs CI for java + gradle.
 
 7. Problems & how I solved them
-7.1. Swagger/OpenAPI returned HTTP 500 (/v3/api-docs)
-Symptom: Swagger UI showed “Failed to load API definition. response status is 500 /v3/api-docs”.
-Console error: NoSuchMethodError: ControllerAdviceBean.<init>(Object)
-Cause: Version mismatch – I was on Spring Boot 3.5.x while using springdoc 2.6.0, which still targets Framework 6.1 (Boot 3.2).
+
+7.1. Swagger/OpenAPI returned HTTP 500 
+Issue: 
+Swagger UI showed “Failed to load API definition. response status is 500.
+Cause: 
+Version mismatch.
 Fix:
-Downgraded to Spring Boot 3.2.5, kept springdoc at 2.6.0, and removed the extra springdoc-openapi-starter-webmvc-api dependency.
-Added spring-boot-starter-validation.
-Verified /v3/api-docs returns JSON, then opened /swagger-ui.html.
+I needed to downgrade to Spring Boot 3.2.5, kept springdoc at 2.6.0.
+
 
 7.2. Port 8080 already in use
 Symptom: Spring Boot couldn’t start.
