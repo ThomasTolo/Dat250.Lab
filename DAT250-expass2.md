@@ -67,6 +67,7 @@ I needed to downgrade to Spring Boot 3.2.5, kept springdoc at 2.6.0.
 Spring Boot couldn’t start.
 Fix: 
 Killed the process using, Lsof -i :8080 and using kill command to end the active session.
+I later also found out, I could use the red box in the top middle to end active session.
 
 7.3. REST Client variables not set
 Code from test requests used "{{pollId}}" literally.
