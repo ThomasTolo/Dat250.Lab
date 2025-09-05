@@ -12,16 +12,8 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * E2E scenario test that tolerates 200/201/204 differences and asserts behavior.
- * Steps:
- *  - create two users
- *  - create a poll with three options
- *  - user2 votes red, then changes to blue
- *  - verify latest is blue
- *  - delete poll
- *  - verify votes endpoint is empty or 404
- */
+//Source: https://www.youtube.com/watch?v=M8iml7gF6ZU
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class PollScenarioTest {
 
@@ -29,7 +21,6 @@ public class PollScenarioTest {
 
     @Autowired TestRestTemplate http;
 
-    // ----------------- helpers -----------------
 
     private String url(String path) {
         return "http://localhost:" + port + path;
