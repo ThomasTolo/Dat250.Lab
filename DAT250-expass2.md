@@ -1,42 +1,33 @@
 DAT250 – Experiment Assignment 2
 Thomas Tolo Jensen
 
+**Report**
 
-1. Overview
-This assignment was to build a small Poll/Quiz application with Spring Boot, expose a REST API, create manual test scenarios (HTTP client), convert them into automated tests, and finally set up CI with GitHub Actions.
-This report summarizes what I implemented, how I tested it, and—most importantly—the technical problems I hit and how I solved them.
+1. 
+In this assignment (expass2) I buildt a small Poll/Quiz application with Spring Boot, expose a REST API, manual test scenarios (using Visual studio code HTTP client), convert them into automated tests in java, and finally set up CI with GitHub Actions.
+Here i will summarizes what I implemented, how I tested it, technical problems I got and how I solved them.
 
-2. What I built
-Domain model
-User – username, password, email, lists of created poll IDs and vote IDs.
-Poll – question, publishedAt, validUntil, public/private flags, optional maxVotesPerUser, invited usernames, options, and vote IDs.
-VoteOption – caption, presentationOrder, (id and pollId).
-Vote – optionId, voterUserId, publishedAt, anonymous flag.
-Quiz – specialization/meta of Poll (private poll with correct options & scoring planned as an extension).
-All domain classes are simple Java Beans (no heavy logic) with getters/setters and no-args constructors.
-In-memory service
-PollManager (@Component) – holds users, polls and votes in HashMap<UUID, …>, generates IDs, and enforces minimal rules (e.g., updating a vote replaces previous vote by same user/poll).
-Web/API
-UserController – POST /api/users, GET /api/users.
-PollController – POST /api/polls, GET /api/polls, DELETE /api/polls/{id}.
-VoteController – POST /api/polls/{pollId}/votes, GET /api/polls/{pollId}/votes.
-ApiExceptionHandler – returns clean JSON for common errors (404, bad request, etc.). (I added this class for myself to help with debugging as a few problems araised during this weeks Lab. Which I will mention later)
+2. What I built (Step 2 and 4)
+Domain model:
+User containing username, password, email, lists of created poll IDs and vote IDs.
+Poll containing question, publishedAt, validUntil, public/private flags, optional maxVotesPerUser, invited usernames, options, and vote IDs.
+VoteOption containing caption, presentationOrder, (id and pollId).
+Vote containing optionId, voterUserId, publishedAt, anonymous flag.
+Quiz containing specialization/meta of Poll (private poll with correct options & scoring planned as an extension).
 
-Project layout:
+In-memory service:
+PollManager (@Component) – holds users, polls and votes in HashMap, generates IDs
 
-src/
-  main/
-    java/no/hvl/Lab1/
-      Domain/ (User, Poll, Vote, VoteOption, Quiz)
-      Service/ (PollManager)
-      Web/ (UserController, PollController, VoteController, ApiExceptionHandler, HomeController)
-    resources/
-      application.properties
-  test/
-    java/no/hvl/Lab1/PollScenarioTest.java
-    resources/http/PollScenarios.http
+Web/API:
+UserController,  with POST and GET methods
+PollController, with POST, GET and DELETE methods
+VoteController, POST and GET methids
+ApiExceptionHandler which returns clean JSON for common errors (I added this class for myself to help with debugging as a few problems araised during this weeks Lab. Which I will mention later)
+
+
 
 3. Manual test scenarios (Step 3)
+
 I used the VS Code REST Client to create PollScenarios.http that exercises the full flow:
 Create user 1 → capture {{u1Id}}
 List users → contains user 1
@@ -56,7 +47,7 @@ Gotcha: the REST Client scripting uses JavaScript blocks. I had to parse the JSO
   if (red) client.global.set("redOptionId", red.id);
 %}
 
-4. Automated tests (Step 5/6)
+4. Automated tests (Step 5)
 I converted the scenario into a JUnit 5 test using Spring Boot.
 Final approach: @SpringBootTest + MockMvc (I also tried RestClient in between).
 The test creates users, polls, performs votes, asserts the latest vote, and ensures votes disappear after deleting the poll.
@@ -122,22 +113,13 @@ permissions:
   checks: write
 Run succeeded; artifact test-report is produced.
 
-8. Pending / possible improvements
+8. Improvements
 Quiz extension: scoring by correctness and response time; leaderboard aggregation.
 Validation & errors: more robust DTO validation, clearer 4xx messages, and coverage for edge cases: anonymous multi-vote on public polls, time-window voting rules, etc.
 Persistent storage: swap HashMap store for JPA and a database.
 DTOs for docs: use response/request DTOs to avoid circular references and make Swagger schemas cleaner.
 More tests: add negative tests (deadline passed, wrong poll/option IDs, etc.).
 
-9. How to run locally
-./gradlew bootRun
-# UI:
-#   http://localhost:8080/swagger-ui.html
-# Raw docs:
-#   http://localhost:8080/v3/api-docs
-Run tests:
-./gradlew test
-# HTML report: build/reports/tests/test/index.html
 
 10. Conclusion
 I implemented the Poll API with an in-memory domain model, built controllers, created both manual REST Client scenarios and JUnit automated tests, and set up GitHub Actions to run tests and publish reports. The main learning outcome was troubleshooting version compatibility (Spring Boot vs springdoc) and catching small configuration mistakes that cascade into hard-to-read 500 errors. After aligning versions, fixing properties, and adding the right CI permissions, everything runs green end-to-end.
