@@ -64,39 +64,38 @@ I needed to downgrade to Spring Boot 3.2.5, kept springdoc at 2.6.0.
 
 
 7.2. Port 8080 already in use
-Symptom: Spring Boot couldn’t start.
-Fix: Killed the process using, Lsof -i :8080 and using kill command to end the active session.
+Spring Boot couldn’t start.
+Fix: 
+Killed the process using, Lsof -i :8080 and using kill command to end the active session.
 
 7.3. REST Client variables not set
-Symptom: Later requests used "{{pollId}}" literally.
-Cause: I forgot to capture IDs after responses.
-Fix: Added JavaScript capture blocks to PollScenarios.http.
+Code from test requests used "{{pollId}}" literally.
+Cause: 
+I forgot to capture IDs after responses.
+Fix: 
+Added JavaScript capture blocks to PollScenarios.http.
 
 7.4. HTTP 400 when creating a poll from REST file
-Symptom: Cannot deserialize value of type 'java.util.UUID' from String "{{u1Id}}".
-Cause: I ran “Create Poll” before “Create User 1”; {{u1Id}} wasn’t set.
-Fix: Always execute blocks in order; also added quick “List” steps to verify captured variables.
+I got this error "Cannot deserialize value of type 'java.util.UUID' from String "{{u1Id}}"."
+Cause:
+I ran “Create Poll” before “Create User 1”; {{u1Id}} wasn’t set.
+Fix: 
+Always execute blocks in order; also added quick “List” steps to verify captured variables.
 
-7.5. JUnit status mismatch (201 vs 200)
-Symptom: Test expected 201 Created but controller returned 200 OK.
-Fix: Standardized controllers to return 201 Created on POST 
-
-7.6. GitHub Actions error: “Resource not accessible by integration”
-Symptom: CI failed at “Publish JUnit results”.
+7.5. GitHub Actions error: “Resource not accessible by integration”
+CI failed at “Publish JUnit results”.
 Cause: The workflow’s GITHUB_TOKEN lacked permissions to create a check run.
-Fix: Added:
+Fix: 
+Added:
 permissions:
   contents: read
   checks: write
-Run succeeded; artifact test-report is produced.
+Run succeeded;
 
 8. Improvements
-Quiz extension: scoring by correctness and response time; leaderboard aggregation.
-Validation & errors: more robust DTO validation, clearer 4xx messages, and coverage for edge cases: anonymous multi-vote on public polls, time-window voting rules, etc.
-Persistent storage: swap HashMap store for JPA and a database.
-DTOs for docs: use response/request DTOs to avoid circular references and make Swagger schemas cleaner.
-More tests: add negative tests (deadline passed, wrong poll/option IDs, etc.).
+Quiz extension: more questions to choose and score points based off.
+More tests: deadline passed, wrong poll/option IDs, etc.
 
 
-10. Conclusion
-I implemented the Poll API with an in-memory domain model, built controllers, created both manual REST Client scenarios and JUnit automated tests, and set up GitHub Actions to run tests and publish reports. The main learning outcome was troubleshooting version compatibility (Spring Boot vs springdoc) and catching small configuration mistakes that cascade into hard-to-read 500 errors. After aligning versions, fixing properties, and adding the right CI permissions, everything runs green end-to-end.
+9. Conclusion
+I implemented the Poll API with an in-memory domain model, built controllers, created both manual REST Client scenarios and JUnit automated tests, and set up GitHub Actions to run tests and publish reports. The main learning outcome was getting familiar with spring boot, which I have never used before DAT250, I have spent a lot of time getting familiar with the program. It has also been a good task to improve troubleshooting and testing code.
