@@ -6,6 +6,10 @@
 @redOptionId = 08ea2d21-3895-429c-ae60-3ff975d55a51
 @blueOptionId = a26496f7-240e-4c95-b5a0-dce00108fab8
 
+#Source: https://www.rfc-editor.org/rfc/rfc9110.html
+# https://learn.microsoft.com/en-us/aspnet/core/test/http-files?view=aspnetcore-9.0
+
+
 ############################################################
 # STEP 1 — Create user 1
 # Captures: {{u1Id}}
