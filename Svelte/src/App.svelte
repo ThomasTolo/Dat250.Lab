@@ -1,47 +1,24 @@
 <script>
-  import svelteLogo from './assets/svelte.svg'
-  import viteLogo from '/vite.svg'
-  import Counter from './lib/Counter.svelte'
+	import CreatePoll from './lib/CreatePoll.svelte';
+	import Poll from './lib/Poll.svelte';
+
+	// Example poll data for Poll component
+	let poll = {
+		id: 42,
+		question: 'Pineapple on Pizza: Is it ok?',
+		options: [
+			{ text: 'Oh yammy!', votes: 2 },
+			{ text: 'Mamma Mia! Hell no!', votes: 12 },
+			{ text: 'IDK... I do not like pizza acutally...', votes: 1 }
+		]
+	};
 </script>
 
-<main>
-  <div>
-    <a href="https://vite.dev" target="_blank" rel="noreferrer">
-      <img src={viteLogo} class="logo" alt="Vite Logo" />
-    </a>
-    <a href="https://svelte.dev" target="_blank" rel="noreferrer">
-      <img src={svelteLogo} class="logo svelte" alt="Svelte Logo" />
-    </a>
-  </div>
-  <h1>Vite + Svelte</h1>
 
-  <div class="card">
-    <Counter />
-  </div>
-
-  <p>
-    Check out <a href="https://github.com/sveltejs/kit#readme" target="_blank" rel="noreferrer">SvelteKit</a>, the official Svelte app framework powered by Vite!
-  </p>
-
-  <p class="read-the-docs">
-    Click on the Vite and Svelte logos to learn more
-  </p>
+<main class="main-layout">
+	<h1 class="app-title">PollApp</h1>
+	<div class="components-wrapper">
+		<CreatePoll />
+		<Poll {poll} />
+	</div>
 </main>
-
-<style>
-  .logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
-    transition: filter 300ms;
-  }
-  .logo:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
-  }
-  .logo.svelte:hover {
-    filter: drop-shadow(0 0 2em #ff3e00aa);
-  }
-  .read-the-docs {
-    color: #888;
-  }
-</style>

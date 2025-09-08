@@ -1,4 +1,7 @@
+
 package no.hvl.Lab.Web;
+
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +15,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+@CrossOrigin
 @RestController
 @RequestMapping("/api/polls")
 public class PollController {
@@ -34,6 +38,26 @@ public class PollController {
 
     @GetMapping
     public Collection<Poll> list() { return manager.allPolls(); }
+
+    @GetMapping("/{pollId}")
+    public Poll get(@PathVariable UUID pollId) {
+        return manager.findPoll(pollId).orElseThrow();
+    }
+
+    @PutMapping("/{pollId}")
+    public Poll update(@PathVariable UUID pollId, @RequestBody CreatePollRequest req) {
+        manager.deletePoll(pollId);
+        return manager.createPoll(
+                req.creatorUserId,
+                req.question,
+                req.publicPoll,
+                req.publishedAt,
+                req.validUntil,
+                req.maxVotesPerUser,
+                req.invitedUsernames,
+                req.options
+        );
+    }
 
     @DeleteMapping("/{pollId}")
     public void delete(@PathVariable UUID pollId) { manager.deletePoll(pollId); }

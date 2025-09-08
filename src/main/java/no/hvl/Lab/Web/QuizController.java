@@ -1,4 +1,7 @@
+
 package no.hvl.Lab.Web;
+
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +16,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@CrossOrigin
 @RestController
 @RequestMapping("/api/quizzes")
 public class QuizController {
@@ -34,6 +38,23 @@ public class QuizController {
 
     @GetMapping
     public Collection<Quiz> listQuizzes() { return manager.allQuizzes(); }
+
+    @GetMapping("/{quizId}")
+    public Quiz get(@PathVariable UUID quizId) {
+        // Not implemented: findQuiz
+        return null;
+    }
+
+    @PutMapping("/{quizId}")
+    public Quiz update(@PathVariable UUID quizId, @RequestBody CreateQuizRequest req) {
+        // Not implemented: updateQuiz
+        return null;
+    }
+
+    @DeleteMapping("/{quizId}")
+    public void delete(@PathVariable UUID quizId) {
+        // Not implemented: deleteQuiz
+    }
 
     @PostMapping("/session")
     public QuizSession createSession(@RequestBody CreateSessionRequest req) {
