@@ -1,21 +1,124 @@
 <script>
+  // Helper to get the current user's vote for an option
+  function getUserVote(optionId) {
+    const optionVotes = votes.filter(v => v.optionId === optionId);
+    // Match both anonymous and non-anonymous votes for this user
+    const vote = optionVotes.find(v => {
+      // If anonymous, voterUserId may be null
+      if (v.anonymous) {
+        return v.voterUserId === null;
+      } else {
+        return v.voterUserId === voterUserId;
+      }
+    });
+    if (vote && typeof vote.upvote === 'string') {
+      vote.upvote = vote.upvote === 'true';
+    }
+    return vote;
+  }
+  // Generate a new UUID for voterUserId every time the browser is opened
+  function generateUUID() {
+    // RFC4122 version 4 compliant UUID
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+  let voterUserId = generateUUID();
+  // Helper to get net votes for an option, using only latest vote per user
+  function getNetVotes(optionId) {
+    // Map: voterUserId (or 'anon') -> latest vote
+    const optionVotes = votes.filter(v => v.optionId === optionId);
+    const latestVotes = {};
+    for (const v of optionVotes) {
+      const key = v.voterUserId || 'anon';
+      if (!latestVotes[key] || (v.publishedAt && v.publishedAt > latestVotes[key].publishedAt)) {
+        latestVotes[key] = v;
+      }
+    }
+    let net = 0;
+    for (const k in latestVotes) {
+      // Robustly handle both boolean and string values for upvote
+      const up = latestVotes[k].upvote === true || String(latestVotes[k].upvote) === 'true';
+      net += up ? 1 : -1;
+    }
+    return net;
+  }
   // Logic for voting on a poll will go here
+  // poll prop fallback for safety
   export let poll = {
-    id: 42,
-    question: 'Pineapple on Pizza: Is it ok?',
-    options: [
-      { text: 'Oh yammy!', votes: 2 },
-      { text: 'Mamma Mia! Hell no!', votes: 12 },
-      { text: 'IDK... I do not like pizza acutally...', votes: 1 }
-    ]
+    id: '',
+    question: '',
+    options: []
   };
 
-  function upvote(index) {
-    poll.options[index].votes += 1;
+
+  import { createEventDispatcher, onMount } from 'svelte';
+  const dispatch = createEventDispatcher();
+
+  let votes = [];
+
+  async function fetchVotes() {
+    try {
+      const res = await fetch(`http://localhost:8080/api/polls/${poll.id}/votes`);
+      if (res.ok) {
+        votes = await res.json();
+        console.log('Fetched votes:', votes);
+      } else {
+        votes = [];
+        console.log('Fetched votes: []');
+      }
+    } catch (e) {
+      votes = [];
+      console.log('Fetched votes: [] (error)', e);
+    }
   }
 
-  function downvote(index) {
-    poll.options[index].votes -= 1;
+  onMount(fetchVotes);
+
+  
+    async function deletePoll() {
+      if (!confirm('Er du sikker på at du vil slette denne poll-en?')) return;
+      try {
+        const res = await fetch(`http://localhost:8080/api/polls/${poll.id}`, {
+          method: 'DELETE'
+        });
+        if (res.ok) {
+          dispatch('pollDeleted');
+        } else {
+          alert('Kunne ikke slette poll');
+        }
+      } catch (e) {
+        alert('Feil ved sletting av poll');
+      }
+    }
+  async function vote(index, isUpvote) {
+    if (!poll.options || !poll.options[index]) {
+      alert('Alternativ mangler!');
+      return;
+    }
+    const payload = {
+      optionId: poll.options[index].id,
+      voterUserId,
+      anonymous: false, // ensure votes are tracked per user
+      isUpvote: isUpvote // true for upvote, false for downvote
+    };
+    console.log('Sending vote payload:', payload);
+    try {
+      const res = await fetch(`http://localhost:8080/api/polls/${poll.id}/votes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      await fetchVotes();
+      dispatch('voted');
+      if (!res.ok) {
+        alert('Kunne ikke stemme');
+      }
+    } catch (e) {
+      await fetchVotes();
+      alert('Feil ved stemming');
+    }
   }
 </script>
 
@@ -23,18 +126,34 @@
   <div class="poll-header">
     <span class="poll-id">Poll#{poll.id}</span>
     <div class="poll-question">"{poll.question}"</div>
+    <div class="poll-actions">
+      <button class="delete-poll" type="button" on:click={deletePoll}>Slett poll</button>
+    </div>
   </div>
   <div class="poll-options">
-    {#each poll.options as option, i}
-      <div class="poll-option-row">
-        <div class="option-text">{option.text}</div>
-        <div class="vote-buttons">
-          <button class="upvote" on:click={() => upvote(i)}>upvote</button>
-          <button class="downvote" on:click={() => downvote(i)}>downvote</button>
+    {#if poll.options && poll.options.length > 0}
+      {#each poll.options as option, i}
+        <div class="poll-option-row">
+          <div class="option-text">{option.text || option.caption}</div>
+          <div class="vote-buttons">
+            <button class="upvote" type="button" on:click={() => vote(i, true)}>upvote</button>
+            <button class="downvote" type="button" on:click={() => vote(i, false)}>downvote</button>
+          </div>
+          <div class="votes">
+            <span style="color:#2196f3; font-weight:bold">
+              {getNetVotes(option.id)}{Math.abs(getNetVotes(option.id)) === 1 ? ' Vote' : ' Votes'}
+            </span>
+            {#if getUserVote(option.id)}
+              <span style="margin-left:1em; color:#888; font-size:0.95em;">
+                You {getUserVote(option.id).upvote ? 'upvoted' : 'downvoted'}
+              </span>
+            {/if}
+          </div>
         </div>
-        <div class="votes">{option.votes} Votes</div>
-      </div>
-    {/each}
+      {/each}
+    {:else}
+      <div class="poll-option-row">Ingen alternativer tilgjengelig.</div>
+    {/if}
   </div>
 </div>
 
@@ -49,7 +168,13 @@
 .poll-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 1em;
+}
+.poll-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
 }
 .poll-id {
   background: #2196f3;
@@ -84,6 +209,7 @@
   flex: 2;
   font-size: 1.1em;
   font-weight: 500;
+  color: #222;
 }
 .vote-buttons {
   display: flex;

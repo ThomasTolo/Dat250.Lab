@@ -11,9 +11,41 @@
     options[index] = value;
   }
 
-  function createPoll() {
-    // Emit or handle poll creation
-    console.log('Poll created:', question, options);
+  import { createEventDispatcher } from 'svelte';
+  const dispatch = createEventDispatcher();
+
+  async function createPoll() {
+    // Fjern tomme alternativer
+    const filteredOptions = options
+      .map((caption, i) => ({ caption, presentationOrder: i }))
+      .filter(opt => opt.caption && opt.caption.trim() !== '');
+
+    const payload = {
+      creatorUserId: null, // set user if needed
+      question,
+      publicPoll: true,
+      publishedAt: new Date().toISOString(),
+      validUntil: null,
+      maxVotesPerUser: null,
+      invitedUsernames: [],
+      options: filteredOptions
+    };
+    try {
+      const res = await fetch('http://localhost:8080/api/polls', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        question = '';
+        options = [''];
+        dispatch('pollCreated');
+      } else {
+        alert('Failed to create poll');
+      }
+    } catch (e) {
+      alert('Error creating poll');
+    }
   }
 </script>
 

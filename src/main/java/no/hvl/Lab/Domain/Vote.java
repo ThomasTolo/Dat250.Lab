@@ -14,6 +14,9 @@ public class Vote {
     private boolean anonymous;
     private Instant publishedAt;
 
+    // Nytt felt for upvote/downvote
+    private boolean isUpvote;
+
     public Vote() {}
 
     public UUID getId() { return id; }
@@ -33,4 +36,8 @@ public class Vote {
 
     public Instant getPublishedAt() { return publishedAt; }
     public void setPublishedAt(Instant publishedAt) { this.publishedAt = publishedAt; }
+
+    public boolean isUpvote() { return isUpvote; }
+    public void setUpvote(boolean isUpvote) { this.isUpvote = isUpvote; }
+    
 }

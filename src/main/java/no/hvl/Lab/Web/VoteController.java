@@ -20,7 +20,10 @@ public class VoteController {
 
     @PostMapping
     public Vote cast(@PathVariable UUID pollId, @RequestBody VoteRequest req) {
-        return manager.castOrChangeVote(pollId, req.optionId, req.voterUserId, req.anonymous);
+    // Pass isUpvote to manager and always return the updated vote object
+    Vote vote = manager.castOrChangeVote(pollId, req.optionId, req.voterUserId, req.anonymous, req.isUpvote);
+    // Re-fetch from manager to ensure latest state
+    return manager.findVote(vote.getId()).orElse(vote);
     }
 
     @GetMapping
@@ -35,10 +38,12 @@ public class VoteController {
 
     @PutMapping("/{voteId}")
     public Vote update(@PathVariable UUID pollId, @PathVariable UUID voteId, @RequestBody VoteRequest req) {
-        // For demo: delete and re-cast
-        // (real app: update fields)
-        // Not implemented: deleteVote
-        return manager.castOrChangeVote(pollId, req.optionId, req.voterUserId, req.anonymous);
+    // For demo: delete and re-cast
+    // (real app: update fields)
+    // Not implemented: deleteVote
+    // Pass isUpvote to manager and always return the updated vote object
+    Vote vote = manager.castOrChangeVote(pollId, req.optionId, req.voterUserId, req.anonymous, req.isUpvote);
+    return manager.findVote(vote.getId()).orElse(vote);
     }
 
     @DeleteMapping("/{voteId}")
@@ -47,8 +52,9 @@ public class VoteController {
     }
 
     public static class VoteRequest {
-        public UUID optionId;
-        public UUID voterUserId; // null if anonymous
-        public boolean anonymous;
+    public UUID optionId;
+    public UUID voterUserId; // null if anonymous
+    public boolean anonymous;
+    public boolean isUpvote;
     }
 }

@@ -1,24 +1,37 @@
+
 <script>
 	import CreatePoll from './lib/CreatePoll.svelte';
 	import Poll from './lib/Poll.svelte';
 
-	// Example poll data for Poll component
-	let poll = {
-		id: 42,
-		question: 'Pineapple on Pizza: Is it ok?',
-		options: [
-			{ text: 'Oh yammy!', votes: 2 },
-			{ text: 'Mamma Mia! Hell no!', votes: 12 },
-			{ text: 'IDK... I do not like pizza acutally...', votes: 1 }
-		]
-	};
+	let polls = [];
+	let loading = true;
+	let initialLoad = true;
+
+	async function fetchPolls(isInitial = false) {
+		if (isInitial) loading = true;
+		try {
+			const res = await fetch('http://localhost:8080/api/polls');
+			polls = await res.json();
+		} catch (e) {
+			console.error('Failed to fetch polls', e);
+		}
+		if (isInitial) loading = false;
+	}
+
+	fetchPolls(true);
 </script>
 
 
 <main class="main-layout">
 	<h1 class="app-title">PollApp</h1>
 	<div class="components-wrapper">
-		<CreatePoll />
-		<Poll {poll} />
+		<CreatePoll on:pollCreated={() => fetchPolls(true)} />
+		{#if loading}
+			<p>Loading polls...</p>
+		{:else}
+			{#each polls as poll}
+				<Poll {poll} on:voted={() => fetchPolls()} on:pollDeleted={() => fetchPolls(true)} />
+			{/each}
+		{/if}
 	</div>
 </main>
