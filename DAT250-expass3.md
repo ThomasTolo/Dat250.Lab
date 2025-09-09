@@ -15,11 +15,6 @@ During the completion of this assignment, I encountered several technical challe
 - **Automated Build/Deploy:**
   - Set up a `build.gradle.kts` in the Svelte project to automate building the frontend and copying static assets to the backend, but had to ensure build and dependency folders were not tracked by git.
 
-  - When I added the log in version for Svelte it failed and gave me the error "failed to create a poll".
-  Fix: I had to
-
-## Latest Issues and Solutions
-
 - **Frontend/Backend Synchronization:**
   - The Svelte dev server (`localhost:5175`) and Spring Boot backend (`localhost:8080`) behaved differently: dev started at register, backend skipped login and allowed poll creation.
   - Fix: Ensured all fetch URLs are relative, added Vite proxy config to forward `/api` requests to backend, and made login state persistent only on logout.
@@ -27,7 +22,6 @@ During the completion of this assignment, I encountered several technical challe
 - **Spring Boot Not Showing Latest Frontend:**
   - After updating Svelte code, changes were not reflected on `localhost:8080`.
   - Fix: Automated build and copy process using `./gradlew copyWebApp` in Svelte folder, followed by restarting Spring Boot backend.
-
 
 - **LocalStorage State Issues:**
   - App sometimes started at the wrong page due to leftover localStorage state.
@@ -37,7 +31,11 @@ During the completion of this assignment, I encountered several technical challe
   - Svelte dev server could not create polls due to CORS issues.
   - Fix: Added proxy config in `vite.config.js` to forward `/api` requests to Spring Boot backend.
 
-Link to Code
+- **Only Able to Vote for One Option (Latest Vote Count Issue):**
+  - Initially, the backend logic deduplicated votes by user, so only the latest vote per user was counted for the entire poll. This meant users could only vote for one option per poll, and voting for a new option would overwrite their previous vote.
+  - Fix: Changed the backend to return all votes for a poll, allowing users to vote for multiple options (but only once per option). Updated frontend logic to match this behavior.
+
+Link to Code For 1-2
 
 [GitHub Repository - DAT250.Lab](https://github.com/ThomasTolo/Dat250.Lab)
 
