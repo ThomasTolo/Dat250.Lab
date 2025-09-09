@@ -1,5 +1,5 @@
 <script>
-  // --- Voting Logic: Get the current user's vote for a poll option ---
+  // Voting Logic: Get the current user's vote for a poll option 
   function getUserVote(optionId) {
     const optionVotes = votes.filter(v => v.optionId === optionId);
     // Match both anonymous and non-anonymous votes for this user
@@ -16,7 +16,7 @@
     }
     return vote;
   }
-  // --- Anonymous User Handling: Generate a new UUID for each browser session ---
+  // Anonymous User Handling: Generate a new UUID for each browser session
   function generateUUID() {
     // RFC4122 version 4 compliant UUID
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -25,7 +25,7 @@
     });
   }
   let voterUserId = generateUUID();
-  // --- Vote Counting: Calculate net votes for each option, using only the latest vote per user ---
+  // Vote Counting: Calculate net votes for each option, using only the latest vote per user
   function getNetVotes(optionId) {
     // Map: voterUserId (or 'anon') -> latest vote
     const optionVotes = votes.filter(v => v.optionId === optionId);
@@ -45,7 +45,7 @@
     return net;
   }
   // Logic for voting on a poll will go here
-  // --- Poll Data: Default poll object to ensure safe rendering ---
+  // Poll Data: Default poll object to ensure safe rendering
   export let poll = {
     id: '',
     question: '',
@@ -53,14 +53,14 @@
   };
 
 
-  // --- Svelte Lifecycle and Event Handling ---
+  // Svelte Lifecycle and Event Handling
   import { createEventDispatcher, onMount } from 'svelte';
   const dispatch = createEventDispatcher();
 
-  // --- State: Store all votes for the current poll ---
+  // State: Store all votes for the current poll
   let votes = [];
 
-  // --- API Integration: Fetch votes for the current poll from backend ---
+  // API Integration: Fetch votes for the current poll from backend
   async function fetchVotes() {
     try {
   const res = await fetch(`/api/polls/${poll.id}/votes`);
@@ -75,13 +75,13 @@
       console.error('Error fetching votes', e);}
   }
 
-  // --- Svelte Lifecycle: Fetch votes when component mounts ---
+  // Svelte Lifecycle: Fetch votes when component mounts
   onMount(fetchVotes);
 
-  
-  // --- Poll Management: Delete the current poll via backend API ---
-    async function deletePoll() {
-      if (!confirm('Er du sikker på at du vil slette denne poll-en?')) return;
+
+  // Poll Management: Delete the current poll via backend API
+  async function deletePoll() {
+    if (!confirm('Er du sikker på at du vil slette denne poll-en?')) return;
       try {
   const res = await fetch(`/api/polls/${poll.id}`, {
           method: 'DELETE'
@@ -95,7 +95,7 @@
         alert('Feil ved sletting av poll');
       }
     }
-  // --- Voting: Send upvote/downvote for a poll option to backend ---
+  // Voting: Send upvote/downvote for a poll option to backend
   async function vote(index, isUpvote) {
     if (!poll.options || !poll.options[index]) {
       alert('Alternativ mangler!');
