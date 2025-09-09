@@ -7,14 +7,9 @@ public class Vote {
     private UUID id;
     private UUID pollId;
     private UUID optionId;
-
-    // null when anonymous vote on public poll
     private UUID voterUserId;
-
     private boolean anonymous;
     private Instant publishedAt;
-
-    // Nytt felt for upvote/downvote
     private boolean isUpvote;
 
     public Vote() {}

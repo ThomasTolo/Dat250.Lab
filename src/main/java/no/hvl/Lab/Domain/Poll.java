@@ -6,16 +6,11 @@ import java.util.*;
 public class Poll {
     private UUID id;
     private String question;
-
     private Instant publishedAt;
     private Instant validUntil;
-
-    // Visibility / access control
-    private boolean publicPoll;                 // true => public (anonymous allowed)
-    private Integer maxVotesPerUser;            // null => unlimited; 1 for private single-vote
-    private Set<String> invitedUsernames = new HashSet<>(); // for private polls
-
-    // Relations by id to avoid deep graphs for now
+    private boolean publicPoll;             
+    private Integer maxVotesPerUser;           
+    private Set<String> invitedUsernames = new HashSet<>(); 
     private UUID creatorUserId;
     private List<VoteOption> options = new ArrayList<>();
     private Set<UUID> voteIds = new HashSet<>();

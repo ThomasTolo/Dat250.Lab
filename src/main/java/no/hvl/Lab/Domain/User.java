@@ -5,16 +5,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * A registered user who can create polls and vote.
- */
+
 public class User {
     private UUID id;
     private String username;
-    private String password; // plain for now; hash it later
+    private String password; 
     private String email;
-
-    // Convenience: track created polls and votes by id
     private Set<UUID> createdPollIds = new HashSet<>();
     private Set<UUID> voteIds = new HashSet<>();
 

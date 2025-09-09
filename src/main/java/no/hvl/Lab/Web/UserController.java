@@ -34,14 +34,11 @@ public class UserController {
 
     @PutMapping("/{userId}")
     public User update(@PathVariable UUID userId, @RequestBody CreateUserRequest req) {
-        // For demo: delete and re-create
-        // (real app: update fields)
         return manager.registerUser(req.username, req.password, req.email);
     }
 
     @DeleteMapping("/{userId}")
     public void delete(@PathVariable UUID userId) {
-        // Not implemented: deleteUser
     }
 
     public static class CreateUserRequest {

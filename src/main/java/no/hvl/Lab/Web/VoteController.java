@@ -20,9 +20,7 @@ public class VoteController {
 
     @PostMapping
     public Vote cast(@PathVariable UUID pollId, @RequestBody VoteRequest req) {
-    // Pass isUpvote to manager and always return the updated vote object
     Vote vote = manager.castOrChangeVote(pollId, req.optionId, req.voterUserId, req.anonymous, req.isUpvote);
-    // Re-fetch from manager to ensure latest state
     return manager.findVote(vote.getId()).orElse(vote);
     }
 
@@ -38,17 +36,12 @@ public class VoteController {
 
     @PutMapping("/{voteId}")
     public Vote update(@PathVariable UUID pollId, @PathVariable UUID voteId, @RequestBody VoteRequest req) {
-    // For demo: delete and re-cast
-    // (real app: update fields)
-    // Not implemented: deleteVote
-    // Pass isUpvote to manager and always return the updated vote object
     Vote vote = manager.castOrChangeVote(pollId, req.optionId, req.voterUserId, req.anonymous, req.isUpvote);
     return manager.findVote(vote.getId()).orElse(vote);
     }
 
     @DeleteMapping("/{voteId}")
     public void delete(@PathVariable UUID pollId, @PathVariable UUID voteId) {
-        // Not implemented: deleteVote
     }
 
     public static class VoteRequest {

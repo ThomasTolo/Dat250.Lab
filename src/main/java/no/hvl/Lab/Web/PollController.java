@@ -68,8 +68,8 @@ public class PollController {
         public boolean publicPoll;
         public Instant publishedAt;
         public Instant validUntil;
-        public Integer maxVotesPerUser;              // null => unlimited
-        public Set<String> invitedUsernames;         // for private polls
-        public List<VoteOption> options;             // caption + presentationOrder
+        public Integer maxVotesPerUser;              
+        public Set<String> invitedUsernames;         
+        public List<VoteOption> options;             
     }
 }
