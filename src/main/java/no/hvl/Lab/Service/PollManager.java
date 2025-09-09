@@ -203,5 +203,17 @@ public List<Vote> votesForPollLatestPerUser(UUID pollId) {
     return new ArrayList<>(latest.values());
 }
 
+// Return all votes for a poll
+public List<Vote> votesForPoll(UUID pollId) {
+    Poll p = polls.get(pollId);
+    if (p == null) return List.of();
+    List<Vote> result = new ArrayList<>();
+    for (UUID vId : p.getVoteIds()) {
+        Vote v = votes.get(vId);
+        if (v != null) result.add(v);
+    }
+    return result;
+}
+
 
 }

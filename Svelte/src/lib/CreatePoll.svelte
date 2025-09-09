@@ -20,7 +20,7 @@
       .filter(opt => opt.caption && opt.caption.trim() !== '');
 
     const payload = {
-      // creatorUserId: null, // set user if needed
+      creatorUserId: null, // always send, backend expects this
       question,
       publicPoll: true,
       publishedAt: new Date().toISOString(),
@@ -30,7 +30,11 @@
       options: filteredOptions
     };
     try {
-      const res = await fetch('/api/polls');
+      const res = await fetch('/api/polls', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
       if (res.ok) {
         question = '';
         options = [''];

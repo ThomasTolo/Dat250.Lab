@@ -25,8 +25,8 @@ public class VoteController {
     }
 
     @GetMapping
-    public List<Vote> listLatestPerUser(@PathVariable UUID pollId) {
-        return manager.votesForPollLatestPerUser(pollId);
+    public List<Vote> listAllVotes(@PathVariable UUID pollId) {
+        return manager.votesForPoll(pollId);
     }
 
     @GetMapping("/{voteId}")

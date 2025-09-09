@@ -24,7 +24,37 @@
       return v.toString(16);
     });
   }
-  let voterUserId = generateUUID();
+  import { createEventDispatcher, onMount } from 'svelte';
+  const dispatch = createEventDispatcher();
+
+  let voterUserId = '';
+  // Get voterUserId from localStorage using username
+  $: {
+    const username = localStorage.getItem('username');
+    if (username) {
+      const key = `voterId_${username}`;
+      voterUserId = localStorage.getItem(key) || '';
+    }
+  }
+  import { afterUpdate } from 'svelte';
+
+  let lastPollId = '';
+  let lastVoterUserId = '';
+
+  afterUpdate(() => {
+    if (poll && poll.id && voterUserId) {
+      if (poll.id !== lastPollId || voterUserId !== lastVoterUserId) {
+        fetchVotes();
+        lastPollId = poll.id;
+        lastVoterUserId = voterUserId;
+      }
+    }
+  });
+
+  // Also fetch votes reactively when voterUserId changes
+  $: if (poll && poll.id && voterUserId) {
+    fetchVotes();
+  }
   // Vote Counting: Calculate net votes for each option, using only the latest vote per user
   function getNetVotes(optionId) {
     // Map: voterUserId (or 'anon') -> latest vote
@@ -52,10 +82,6 @@
     options: []
   };
 
-
-  // Svelte Lifecycle and Event Handling
-  import { createEventDispatcher, onMount } from 'svelte';
-  const dispatch = createEventDispatcher();
 
   // State: Store all votes for the current poll
   let votes = [];

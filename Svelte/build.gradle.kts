@@ -20,4 +20,3 @@ tasks.register<Copy>("copyWebApp") {
     into("../src/main/resources/static")
     dependsOn("runBuild")
 }
-
