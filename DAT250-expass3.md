@@ -1,11 +1,15 @@
-DAT250 Experiment Assignment 6 Report
+DAT250 Experiment Assignment 6 Report - Thomas Tolo Jensen
 
 ## Technical Problems Encountered
 
 During the completion of this assignment, I encountered several technical challenges:
 
+- **Visual issue in frontend**
+  - When I started writing the javascript code for the GUI, visual part of the Poll app. It was just that everything looked so unsymmetrical, the option-text/upvote/downvote and vote-count were not linear for each option. 
+  Fix: Used flexbox and custom CSS to align option text, buttons, and vote count in a straight line.
 - **When pressing upvote it returned downvote instead** 
-  - The upvote button returned a downvote because the backend used the property name upvote, but the frontend checked for isUpvote (Thus returning False). Changing the frontend to use upvote fixed the issue
+  - The upvote button returned a downvote because the backend used the property name upvote, but the frontend checked for isUpvote (Thus returning False). 
+  Fix: Changing the frontend to use upvote fixed the issue
 - **Large File in Git History:**
   - Accidentally committed a large binary file over 100 MB, which caused GitHub to reject all pushes. This required cleaning the git history using `git filter-branch` and updating `.gitignore` to prevent future issues.
 - **Frontend/Backend Integration:**
@@ -19,9 +23,5 @@ Link to Code
 
 Pending Issues
 
-- No major unresolved issues remain after cleaning the git history and updating the deployment process.
 - Did not implement the optional microservice/reverse-proxy architecture (e.g., SvelteKit + Caddy) but understand the approach for future projects.
 
----
-
-*This report summarizes the main technical challenges and solutions for Experiment Assignment 6.*
