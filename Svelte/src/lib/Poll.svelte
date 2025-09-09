@@ -63,14 +63,14 @@
   const res = await fetch(`/api/polls/${poll.id}/votes`);
       if (res.ok) {
         votes = await res.json();
-        console.log('Fetched votes:', votes);
+  // ...existing code...
       } else {
         votes = [];
-        console.log('Fetched votes: []');
+  // ...existing code...
       }
     } catch (e) {
       votes = [];
-      console.log('Fetched votes: [] (error)', e);
+  // ...existing code...
     }
   }
 
@@ -103,7 +103,7 @@
       anonymous: false, // ensure votes are tracked per user
       isUpvote: isUpvote // true for upvote, false for downvote
     };
-    console.log('Sending vote payload:', payload);
+  // ...existing code...
     try {
   const res = await fetch(`/api/polls/${poll.id}/votes`, {
         method: 'POST',

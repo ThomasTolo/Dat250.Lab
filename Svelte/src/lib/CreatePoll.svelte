@@ -7,21 +7,18 @@
     options = [...options, ''];
   }
 
-  function updateOption(index, value) {
-    options[index] = value;
-  }
 
   import { createEventDispatcher } from 'svelte';
   const dispatch = createEventDispatcher();
 
   async function createPoll() {
-    // Fjern tomme alternativer
+    
     const filteredOptions = options
       .map((caption, i) => ({ caption, presentationOrder: i }))
       .filter(opt => opt.caption && opt.caption.trim() !== '');
 
     const payload = {
-      creatorUserId: null, // set user if needed
+      // creatorUserId: null, // set user if needed
       question,
       publicPoll: true,
       publishedAt: new Date().toISOString(),
@@ -31,11 +28,7 @@
       options: filteredOptions
     };
     try {
-  const res = await fetch('/api/polls', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+  const res = await fetch('/api/polls');
       if (res.ok) {
         question = '';
         options = [''];

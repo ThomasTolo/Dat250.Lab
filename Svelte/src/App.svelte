@@ -5,12 +5,11 @@
 
 	let polls = [];
 	let loading = true;
-	let initialLoad = true;
 
 	async function fetchPolls(isInitial = false) {
 		if (isInitial) loading = true;
 		try {
-			const res = await fetch('http://localhost:8080/api/polls');
+			const res = await fetch('/api/polls');
 			polls = await res.json();
 		} catch (e) {
 			console.error('Failed to fetch polls', e);
