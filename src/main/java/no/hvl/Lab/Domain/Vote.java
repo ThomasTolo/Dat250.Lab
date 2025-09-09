@@ -1,7 +1,11 @@
+
+// Vote Domain Model: Represents a user's vote on a poll option 
 package no.hvl.Lab.Domain;
 
 import java.time.Instant;
 import java.util.UUID;
+
+// Vote entity: stores vote details for a poll option, including user, time, and up/down status.
 
 public class Vote {
     private UUID id;
@@ -11,9 +15,9 @@ public class Vote {
     private boolean anonymous;
     private Instant publishedAt;
     private boolean isUpvote;
-
     public Vote() {}
 
+    // Getters and setters
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
 

@@ -1,18 +1,20 @@
 <script>
-  // Logic for creating a new poll and its options will go here
+  // --- Poll Creation Component: Handles poll question and options input ---
   let question = '';
   let options = [''];
 
+  // --- Add Option: Add a new empty option field ---
   function addOption() {
     options = [...options, ''];
   }
 
-
+  // --- Svelte Event Dispatcher: Notify parent when poll is created ---
   import { createEventDispatcher } from 'svelte';
   const dispatch = createEventDispatcher();
 
+  // --- Create Poll: Send new poll data to backend API ---
   async function createPoll() {
-    
+    // Filter out empty options before sending
     const filteredOptions = options
       .map((caption, i) => ({ caption, presentationOrder: i }))
       .filter(opt => opt.caption && opt.caption.trim() !== '');
@@ -28,7 +30,7 @@
       options: filteredOptions
     };
     try {
-  const res = await fetch('/api/polls');
+      const res = await fetch('/api/polls');
       if (res.ok) {
         question = '';
         options = [''];

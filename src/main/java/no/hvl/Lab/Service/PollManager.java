@@ -7,15 +7,9 @@ import no.hvl.Lab.Domain.*;
 import java.time.Instant;
 import java.util.*;
 
-/**
- * In-memory repository / domain manager for Users, Polls, Options and Votes.
- * This is intentionally simple for the first draft (no persistence).
- */
+
 @Component
 public class PollManager {
-    /**
-     * Returns the net votes for a given option: upvote = +1, downvote = -1
-     */
     public int getNetVotesForOption(UUID pollId, UUID optionId) {
         Poll poll = polls.get(pollId);
         if (poll == null) return 0;
@@ -39,7 +33,7 @@ public class PollManager {
     private final Map<UUID, Poll> polls = new HashMap<>();
     private final Map<UUID, Vote> votes = new HashMap<>();
 
-    // -------- Users --------
+    // Users
     public User registerUser(String username, String password, String email) {
         User u = new User();
         u.setId(UUID.randomUUID());
@@ -53,7 +47,7 @@ public class PollManager {
     public Optional<User> findUser(UUID id) { return Optional.ofNullable(users.get(id)); }
     public Collection<User> allUsers() { return users.values(); }
 
-    // -------- Polls --------
+    // Polls 
     public Poll createPoll(UUID creatorUserId,
                            String question,
                            boolean isPublic,
@@ -92,7 +86,7 @@ public class PollManager {
     public Optional<Poll> findPoll(UUID id) { return Optional.ofNullable(polls.get(id)); }
     public Collection<Poll> allPolls() { return polls.values(); }
 
-    // -------- Votes --------
+    // Votes
     public Vote castVote(UUID pollId, UUID optionId, UUID voterUserId, boolean anonymous) {
         return castVote(pollId, optionId, voterUserId, anonymous, true); // default to upvote for legacy calls
     }

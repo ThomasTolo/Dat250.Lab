@@ -1,16 +1,22 @@
+
+// VoteOption Domain Model: Represents an option in a poll
 package no.hvl.Lab.Domain;
 
 import java.util.Objects;
 import java.util.UUID;
 
+// VoteOption entity: stores option details for a poll, including caption and order.
+ 
 public class VoteOption {
     private UUID id;
     private UUID pollId;
     private String caption;
     private int presentationOrder;
 
+    // Default constructor
     public VoteOption() {}
 
+    // Getters and setters
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
 

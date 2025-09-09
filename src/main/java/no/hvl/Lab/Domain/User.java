@@ -1,3 +1,5 @@
+
+// User Domain Model: Represents a user in the poll app
 package no.hvl.Lab.Domain;
 
 import java.util.HashSet;
@@ -6,6 +8,8 @@ import java.util.Set;
 import java.util.UUID;
 
 
+// User entity: stores user details, created polls, and votes.
+
 public class User {
     private UUID id;
     private String username;
@@ -13,9 +17,9 @@ public class User {
     private String email;
     private Set<UUID> createdPollIds = new HashSet<>();
     private Set<UUID> voteIds = new HashSet<>();
-
     public User() {}
 
+    // Getters and setters
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
 

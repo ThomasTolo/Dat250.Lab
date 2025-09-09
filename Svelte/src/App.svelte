@@ -1,11 +1,14 @@
 
 <script>
+	// --- Main App Component: Imports poll creation and voting components ---
 	import CreatePoll from './lib/CreatePoll.svelte';
 	import Poll from './lib/Poll.svelte';
 
+	// --- State: List of polls and loading indicator ---
 	let polls = [];
 	let loading = true;
 
+	// --- API Integration: Fetch all polls from backend ---
 	async function fetchPolls(isInitial = false) {
 		if (isInitial) loading = true;
 		try {
@@ -17,6 +20,7 @@
 		if (isInitial) loading = false;
 	}
 
+	// --- Initial Data Load: Fetch polls when app starts ---
 	fetchPolls(true);
 </script>
 
