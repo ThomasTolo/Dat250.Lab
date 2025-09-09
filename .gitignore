@@ -1,2 +1,8 @@
 .gradle/
 .gradle/
+node_modules/
+build/
+dist/
+.vscode/
+.DS_Store
+.gradle/
