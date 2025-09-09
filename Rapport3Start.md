@@ -12,8 +12,6 @@ During the completion of this assignment, I encountered several technical challe
   - Needed to update all fetch URLs in the Svelte frontend from absolute (`http://localhost:8080/...`) to relative (`/api/...`) paths for production deployment with Spring Boot.
 - **Automated Build/Deploy:**
   - Set up a `build.gradle.kts` in the Svelte project to automate building the frontend and copying static assets to the backend, but had to ensure build and dependency folders were not tracked by git.
-- **General Git Hygiene:**
-  - Had to remove and ignore build, dependency, and IDE folders (e.g., `.gradle/`, `node_modules/`, `build/`, `dist/`, `.vscode/`) to keep the repository clean.
 
 Link to Code
 
