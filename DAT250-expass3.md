@@ -35,11 +35,9 @@ During the completion of this assignment, I encountered several technical challe
   - Initially, the backend logic deduplicated votes by user, so only the latest vote per user was counted for the entire poll. This meant users could only vote for one option per poll, and voting for a new option would overwrite their previous vote.
   - Fix: Changed the backend to return all votes for a poll, allowing users to vote for multiple options (but only once per option). Updated frontend logic to match this behavior.
 
-Link to Code For 1-2
-
+**Link to Code For 1-2:**
 [GitHub Repository - DAT250.Lab](https://github.com/ThomasTolo/Dat250.Lab)
 
-Pending Issues
-
+**Pending Issues:**
 - Did not implement the optional microservice/reverse-proxy architecture
 
