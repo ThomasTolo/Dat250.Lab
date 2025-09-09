@@ -1,1 +1,1 @@
-rootProject.name = "Dat250.Lab"
+rootProject.name = "Lab1"
