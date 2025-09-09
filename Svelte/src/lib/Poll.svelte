@@ -60,7 +60,7 @@
 
   async function fetchVotes() {
     try {
-      const res = await fetch(`http://localhost:8080/api/polls/${poll.id}/votes`);
+  const res = await fetch(`/api/polls/${poll.id}/votes`);
       if (res.ok) {
         votes = await res.json();
         console.log('Fetched votes:', votes);
@@ -80,7 +80,7 @@
     async function deletePoll() {
       if (!confirm('Er du sikker på at du vil slette denne poll-en?')) return;
       try {
-        const res = await fetch(`http://localhost:8080/api/polls/${poll.id}`, {
+  const res = await fetch(`/api/polls/${poll.id}`, {
           method: 'DELETE'
         });
         if (res.ok) {
@@ -105,7 +105,7 @@
     };
     console.log('Sending vote payload:', payload);
     try {
-      const res = await fetch(`http://localhost:8080/api/polls/${poll.id}/votes`, {
+  const res = await fetch(`/api/polls/${poll.id}/votes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
