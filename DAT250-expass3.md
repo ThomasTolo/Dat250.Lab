@@ -1,4 +1,4 @@
-DAT250 Experiment Assignment 6 Report - Thomas Tolo Jensen
+DAT250 Experiment Assignment 3 Report - Thomas Tolo Jensen
 
 ## Technical Problems Encountered
 
