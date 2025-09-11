@@ -1,5 +1,5 @@
 
-package no.hvl.Lab.Web;
+package no.hvl.Lab.Controllers;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
 
@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import no.hvl.Lab.Domain.Poll;
 import no.hvl.Lab.Domain.VoteOption;
-import no.hvl.Lab.Service.PollManager;
+import no.hvl.Lab.Services.PollManager;
 
 import java.time.Instant;
 import java.util.Collection;

@@ -1,4 +1,4 @@
-package no.hvl.Lab.Service;
+package no.hvl.Lab.Services;
 
 import org.springframework.stereotype.Component;
 
