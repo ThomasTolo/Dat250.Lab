@@ -1,4 +1,3 @@
-
 package no.hvl.Lab.Controllers;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -8,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import no.hvl.Lab.Domain.Poll;
 import no.hvl.Lab.Domain.VoteOption;
 import no.hvl.Lab.Services.PollManager;
+import no.hvl.Lab.RawWebSocketServer;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -24,7 +24,7 @@ public class PollController {
 
     @PostMapping
     public Poll create(@RequestBody CreatePollRequest req) {
-        return manager.createPoll(
+        Poll poll = manager.createPoll(
                 req.creatorUserId,
                 req.question,
                 req.publicPoll,
@@ -34,6 +34,8 @@ public class PollController {
                 req.invitedUsernames,
                 req.options
         );
+        RawWebSocketServer.broadcast("pollsUpdated");
+        return poll;
     }
 
     @GetMapping

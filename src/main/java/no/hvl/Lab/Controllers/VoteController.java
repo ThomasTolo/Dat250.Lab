@@ -1,4 +1,3 @@
-
 package no.hvl.Lab.Controllers;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -7,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 
 import no.hvl.Lab.Domain.Vote;
 import no.hvl.Lab.Services.PollManager;
+import no.hvl.Lab.RawWebSocketServer;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,8 +20,9 @@ public class VoteController {
 
     @PostMapping
     public Vote cast(@PathVariable UUID pollId, @RequestBody VoteRequest req) {
-    Vote vote = manager.castOrChangeVote(pollId, req.optionId, req.voterUserId, req.anonymous, req.isUpvote);
-    return manager.findVote(vote.getId()).orElse(vote);
+        Vote vote = manager.castOrChangeVote(pollId, req.optionId, req.voterUserId, req.anonymous, req.isUpvote);
+        RawWebSocketServer.broadcast("votesUpdated");
+        return manager.findVote(vote.getId()).orElse(vote);
     }
 
     @GetMapping

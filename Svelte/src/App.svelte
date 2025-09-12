@@ -28,6 +28,29 @@
 		username = event.detail.username;
 		localStorage.setItem('username', username);
 	}
+
+	let ws;
+	let wsMessages = [];
+
+	function connectWebSocket() {
+		ws = new WebSocket('ws://localhost:8080/rawws');
+		ws.onopen = () => {
+			ws.send('Hello from Svelte frontend!');
+		};
+		ws.onmessage = (event) => {
+			wsMessages = [...wsMessages, event.data];
+			console.log('WebSocket received:', event.data);
+			if (event.data === 'pollsUpdated' || event.data === 'votesUpdated') {
+				fetchPolls();
+			}
+		};
+		ws.onerror = (err) => {
+			console.error('WebSocket error:', err);
+		};
+	}
+
+	// Connect when app loads
+	connectWebSocket();
 </script>
 
 
@@ -38,6 +61,15 @@
 			<button class="logout-btn" on:click={() => { username = ''; localStorage.removeItem('username'); }}>Log out</button>
 		{/if}
 	</div>
+	<!-- WebSocket Messages Display -->
+	<div class="ws-messages">
+		<h2>WebSocket Messages</h2>
+		<ul>
+			{#each wsMessages as msg}
+				<li>{msg}</li>
+			{/each}
+		</ul>
+	</div>
 	<div class="components-wrapper">
 		{#if !username}
 			<Login on:login={handleLogin} />
@@ -47,7 +79,7 @@
 			{#if loading}
 				<p>Loading polls...</p>
 			{:else}
-				{#each polls as poll}
+				{#each polls as poll (poll.id)}
 					<Poll {poll} on:voted={() => fetchPolls()} on:pollDeleted={() => fetchPolls(true)} />
 				{/each}
 			{/if}

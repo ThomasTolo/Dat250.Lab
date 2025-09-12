@@ -36,23 +36,9 @@
       voterUserId = localStorage.getItem(key) || '';
     }
   }
-  import { afterUpdate } from 'svelte';
 
-  let lastPollId = '';
-  let lastVoterUserId = '';
-
-  afterUpdate(() => {
-    if (poll && poll.id && voterUserId) {
-      if (poll.id !== lastPollId || voterUserId !== lastVoterUserId) {
-        fetchVotes();
-        lastPollId = poll.id;
-        lastVoterUserId = voterUserId;
-      }
-    }
-  });
-
-  // Also fetch votes reactively when voterUserId changes
-  $: if (poll && poll.id && voterUserId) {
+  // Always fetch votes when poll changes
+  $: if (poll && poll.id) {
     fetchVotes();
   }
   // Vote Counting: Calculate net votes for each option, using only the latest vote per user
