@@ -27,6 +27,7 @@ dependencies {
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:2.6.0")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework:spring-messaging")
+
 }
 
 tasks.withType<Test> {

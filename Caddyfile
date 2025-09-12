@@ -1,4 +1,7 @@
 :80
 
+
 reverse_proxy /api/* localhost:8080
-reverse_proxy localhost:5174
+
+# Proxy all other requests to the frontend (Svelte dev server or static)
+reverse_proxy /* localhost:5173

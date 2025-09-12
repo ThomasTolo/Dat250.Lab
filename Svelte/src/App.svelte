@@ -9,11 +9,12 @@
 	let loading = true;
 	let username = localStorage.getItem('username') || '';
 
-	// API Integration: Fetch all polls from backend
+	// API Integration: Fetch all polls from backend (REST)
 	async function fetchPolls(isInitial = false) {
 		if (isInitial) loading = true;
 		try {
 			const res = await fetch('/api/polls');
+			if (!res.ok) throw new Error('Failed to fetch polls');
 			polls = await res.json();
 		} catch (e) {
 			console.error('Failed to fetch polls', e);

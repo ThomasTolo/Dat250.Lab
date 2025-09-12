@@ -75,16 +75,13 @@
   // API Integration: Fetch votes for the current poll from backend
   async function fetchVotes() {
     try {
-  const res = await fetch(`/api/polls/${poll.id}/votes`);
-      if (res.ok) {
-        votes = await res.json();
-      } else {
-        votes = [];
-        console.error('Failed to fetch votes');
-      }
+      const res = await fetch(`/api/polls/${poll.id}/votes`);
+      if (!res.ok) throw new Error('Failed to fetch votes');
+      votes = await res.json();
     } catch (e) {
       votes = [];
-      console.error('Error fetching votes', e);}
+      console.error('Error fetching votes', e);
+    }
   }
 
   // Svelte Lifecycle: Fetch votes when component mounts
@@ -94,42 +91,39 @@
   // Poll Management: Delete the current poll via backend API
   async function deletePoll() {
     if (!confirm('Er du sikker på at du vil slette denne poll-en?')) return;
-      try {
-  const res = await fetch(`/api/polls/${poll.id}`, {
-          method: 'DELETE'
-        });
-        if (res.ok) {
-          dispatch('pollDeleted');
-        } else {
-          alert('Kunne ikke slette poll');
-        }
-      } catch (e) {
+    try {
+      const res = await fetch(`/api/polls/${poll.id}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        dispatch('pollDeleted');
+      } else {
         alert('Feil ved sletting av poll');
       }
+    } catch (e) {
+      alert('Feil ved sletting av poll');
     }
+  }
   // Voting: Send upvote/downvote for a poll option to backend
   async function vote(index, isUpvote) {
     if (!poll.options || !poll.options[index]) {
       alert('Alternativ mangler!');
       return;
     }
-    const payload = {
-      optionId: poll.options[index].id,
-      voterUserId,
-      anonymous: false, // ensure votes are tracked per user
-      isUpvote: isUpvote // true for upvote, false for downvote
-    };
     try {
-  const res = await fetch(`/api/polls/${poll.id}/votes`, {
+      const res = await fetch(`/api/polls/${poll.id}/votes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          optionId: poll.options[index].id,
+          voterUserId: voterUserId || null,
+          anonymous: !voterUserId,
+          isUpvote: isUpvote
+        })
       });
+      if (!res.ok) throw new Error('Failed to vote');
       await fetchVotes();
       dispatch('voted');
-      if (!res.ok) {
-        alert('Kunne ikke stemme');
-      }
     } catch (e) {
       await fetchVotes();
       alert('Feil ved stemming');

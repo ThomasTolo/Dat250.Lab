@@ -16,24 +16,23 @@
   async function createPoll() {
     // Filter out empty options before sending
     const filteredOptions = options
-      .map((caption, i) => ({ caption, presentationOrder: i }))
-      .filter(opt => opt.caption && opt.caption.trim() !== '');
+      .map((caption) => caption)
+      .filter(opt => opt && opt.trim() !== '');
 
-    const payload = {
-  creatorUserId: "00000000-0000-0000-0000-000000000001", // test UUID for backend
-      question,
-      publicPoll: true,
-      publishedAt: new Date().toISOString(),
-      validUntil: null,
-      maxVotesPerUser: null,
-      invitedUsernames: [],
-      options: filteredOptions
-    };
     try {
       const res = await fetch('/api/polls', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          creatorUserId: null,
+          question,
+          publicPoll: true,
+          publishedAt: null,
+          validUntil: null,
+          maxVotesPerUser: null,
+          invitedUsernames: [],
+          options: filteredOptions.map((caption, i) => ({ caption, presentationOrder: i }))
+        })
       });
       if (res.ok) {
         question = '';

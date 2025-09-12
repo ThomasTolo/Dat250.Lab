@@ -29,19 +29,9 @@
       error = 'Username required';
       return;
     }
-    // Always let user in, even if backend returns error
-    try {
-      const res = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password: '', email: '' })
-      });
-      const voterUserId = getOrCreateVoterId(username);
-      dispatch('login', { username, voterUserId });
-    } catch (e) {
-      const voterUserId = getOrCreateVoterId(username);
-      dispatch('login', { username, voterUserId });
-    }
+  // No backend registration needed, just generate local voterUserId
+  const voterUserId = getOrCreateVoterId(username);
+  dispatch('login', { username, voterUserId });
   }
 </script>
 
