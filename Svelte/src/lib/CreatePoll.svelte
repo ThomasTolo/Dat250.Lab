@@ -20,7 +20,7 @@
       .filter(opt => opt.caption && opt.caption.trim() !== '');
 
     const payload = {
-      creatorUserId: null, // always send, backend expects this
+  creatorUserId: "00000000-0000-0000-0000-000000000001", // test UUID for backend
       question,
       publicPoll: true,
       publishedAt: new Date().toISOString(),

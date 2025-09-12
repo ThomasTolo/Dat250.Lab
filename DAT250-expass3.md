@@ -1,6 +1,9 @@
 DAT250 Experiment Assignment 3 Report - Thomas Tolo Jensen
 
 ## Technical Problems Encountered
+- **Caddy Reverse Proxy Port Conflicts:**
+  - When setting up the microservice/reverse-proxy architecture with Caddy, multiple Caddy processes were running and caused port conflicts, preventing the proxy from working at `http://localhost`. This resulted in repeated 404 errors for API requests, even though both Spring Boot and Svelte worked on their own ports.
+  Fix: Identified and killed all running Caddy processes using `kill -9 <PID>` for each process listening on port 80. After restarting Caddy, the proxy worked and both frontend and backend were unified at `http://localhost`.
 
 - **Visual issue in frontend**
   - When I started writing the javascript code for the GUI, visual part of the Poll app. It was just that everything looked so unsymmetrical, the option-text/upvote/downvote and vote-count were not linear for each option. 
