@@ -129,28 +129,24 @@ public class PollScenarioTest {
         assert2xx(votesRes, "list votes");
         List<Map<String,Object>> votes = Objects.requireNonNull(votesRes.getBody());
         assertFalse(votes.isEmpty());
-        // pick the last vote by u2 and assert it's blue
-        Map<String,Object> lastByU2 = null;
-        for (Map<String,Object> v : votes) {
-            if (u2Id.equals(v.get("voterUserId"))) lastByU2 = v;
-        }
-        assertNotNull(lastByU2, "Should have a vote from user2");
-        assertEquals(blueOptionId, lastByU2.get("optionId"));
+                // pick the latest vote by u2 (by publishedAt) and assert it's blue
+                Map<String,Object> lastByU2 = votes.stream()
+                        .filter(v -> u2Id.equals(v.get("voterUserId")))
+                        .max(Comparator.comparing(v -> Instant.parse((String)v.get("publishedAt"))))
+                        .orElse(null);
+                assertNotNull(lastByU2, "Should have a vote from user2");
+                assertEquals(blueOptionId, lastByU2.get("optionId"));
 
         // Delete poll (allow 200/204)
         ResponseEntity<Void> delRes = delete("/api/polls/" + pollId);
         assertTrue(delRes.getStatusCode().is2xxSuccessful(),
                 "delete poll should be 2xx, got: " + delRes.getStatusCode());
 
-        // Votes after delete -> either 404 (poll gone) or 200 with empty []
+        // Votes after delete -> should be 200 with empty []
         ResponseEntity<List<Map<String,Object>>> afterVotes =
                 get("/api/polls/" + pollId + "/votes", new ParameterizedTypeReference<>() {});
-        if (afterVotes.getStatusCode() == HttpStatus.OK) {
-            assertTrue(Objects.requireNonNull(afterVotes.getBody()).isEmpty(),
-                    "votes should be empty after poll deletion");
-        } else {
-            assertEquals(HttpStatus.NOT_FOUND, afterVotes.getStatusCode(),
-                    "expected 200(empty) or 404 after poll deletion");
-        }
+        assertEquals(HttpStatus.OK, afterVotes.getStatusCode(), "votes endpoint should return 200 after poll deletion");
+        assertTrue(Objects.requireNonNull(afterVotes.getBody()).isEmpty(),
+                "votes should be empty after poll deletion");
     }
 }
