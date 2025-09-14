@@ -1,4 +1,20 @@
 <script>
+  // Calculate total votes for all options
+  function getTotalVotes() {
+    let total = 0;
+    if (!poll.options) return 0;
+    for (const option of poll.options) {
+      total += Math.abs(getNetVotes(option.id));
+    }
+    return total;
+  }
+
+  // Calculate percentage for a given option
+  function getVotePercent(optionId) {
+    const total = getTotalVotes();
+    if (total === 0) return 0;
+    return Math.round((Math.abs(getNetVotes(optionId)) / total) * 100);
+  }
   // Voting Logic: Get the current user's vote for a poll option 
   function getUserVote(optionId) {
     const optionVotes = votes.filter(v => v.optionId === optionId);
@@ -27,19 +43,18 @@
   import { createEventDispatcher, onMount } from 'svelte';
   const dispatch = createEventDispatcher();
 
-  let voterUserId = '';
-  // Get voterUserId from localStorage using username
-  $: {
-    const username = localStorage.getItem('username');
-    if (username) {
-      const key = `voterId_${username}`;
-      voterUserId = localStorage.getItem(key) || '';
-    }
-  }
+  // voterUserId is now passed as a prop from App.svelte
 
-  // Always fetch votes when poll changes
-  $: if (poll && poll.id) {
+  // Always fetch votes on mount and whenever poll.id changes
+  // Removed duplicate import
+  let lastPollId = '';
+  onMount(() => {
     fetchVotes();
+    lastPollId = poll.id;
+  });
+  $: if (poll && poll.id && poll.id !== lastPollId) {
+    fetchVotes();
+    lastPollId = poll.id;
   }
   // Vote Counting: Calculate net votes for each option, using only the latest vote per user
   function getNetVotes(optionId) {
@@ -65,9 +80,11 @@
   export let poll = {
     id: '',
     question: '',
-    options: []
+    options: [],
+    creatorUserId: ''
   };
 
+  export let voterUserId = '';
 
   // State: Store all votes for the current poll
   let votes = [];
@@ -78,6 +95,7 @@
       const res = await fetch(`/api/polls/${poll.id}/votes`);
       if (!res.ok) throw new Error('Failed to fetch votes');
       votes = await res.json();
+      console.log('Fetched votes for poll', poll.id, votes);
     } catch (e) {
       votes = [];
       console.error('Error fetching votes', e);
@@ -122,8 +140,8 @@
         })
       });
       if (!res.ok) throw new Error('Failed to vote');
-      await fetchVotes();
-      dispatch('voted');
+  await fetchVotes();
+  dispatch('voted');
     } catch (e) {
       await fetchVotes();
       alert('Feil ved stemming');
@@ -136,7 +154,9 @@
     <span class="poll-id">Poll#{poll.id}</span>
     <div class="poll-question">"{poll.question}"</div>
     <div class="poll-actions">
-      <button class="delete-poll" type="button" on:click={deletePoll}>Slett poll</button>
+      {#if poll.creatorUserId === voterUserId}
+        <button class="delete-poll" type="button" on:click={deletePoll}>Slett poll</button>
+      {/if}
     </div>
   </div>
   <div class="poll-options">
@@ -151,6 +171,9 @@
           <div class="votes">
             <span style="color:#2196f3; font-weight:bold">
               {getNetVotes(option.id)}{Math.abs(getNetVotes(option.id)) === 1 ? ' Vote' : ' Votes'}
+            </span>
+            <span style="margin-left:1em; color:#4caf50; font-weight:bold;">
+              {getVotePercent(option.id)}%
             </span>
             {#if getUserVote(option.id)}
               <span style="margin-left:1em; color:#888; font-size:0.95em;">

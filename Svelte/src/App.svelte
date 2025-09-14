@@ -8,6 +8,15 @@
 	let polls = [];
 	let loading = true;
 	let username = localStorage.getItem('username') || '';
+	let voterUserId = '';
+	$: {
+		if (username) {
+			const users = JSON.parse(localStorage.getItem('users') || '{}');
+			voterUserId = users[username]?.id || '';
+		} else {
+			voterUserId = '';
+		}
+	}
 
 	// API Integration: Fetch all polls from backend (REST)
 	async function fetchPolls(isInitial = false) {
@@ -72,18 +81,18 @@
 		</ul>
 	</div>
 	<div class="components-wrapper">
-		{#if !username}
-			<Login on:login={handleLogin} />
-		{:else}
-			<h2 style="text-align:center; color:#fff; margin-bottom:1em;">Hello {username}!</h2>
-			<CreatePoll on:pollCreated={() => fetchPolls(true)} />
-			{#if loading}
-				<p>Loading polls...</p>
+			{#if !username}
+				<Login on:login={handleLogin} />
 			{:else}
-				{#each polls as poll (poll.id)}
-					<Poll {poll} on:voted={() => fetchPolls()} on:pollDeleted={() => fetchPolls(true)} />
-				{/each}
+				<h2 style="text-align:center; color:#fff; margin-bottom:1em;">Hello {username}!</h2>
+				<CreatePoll on:pollCreated={() => fetchPolls(true)} voterUserId={voterUserId} />
+				{#if loading}
+					<p>Loading polls...</p>
+				{:else}
+					{#each polls as poll (poll.id)}
+						<Poll {poll} voterUserId={voterUserId} on:voted={() => fetchPolls()} on:pollDeleted={() => fetchPolls(true)} />
+					{/each}
+				{/if}
 			{/if}
-		{/if}
 	</div>
 </main>

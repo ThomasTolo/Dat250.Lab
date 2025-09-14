@@ -12,6 +12,8 @@
   import { createEventDispatcher } from 'svelte';
   const dispatch = createEventDispatcher();
 
+  export let voterUserId = '';
+
   // Create Poll: Send new poll data to backend API
   async function createPoll() {
     // Filter out empty options before sending
@@ -24,7 +26,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          creatorUserId: null,
+          creatorUserId: voterUserId,
           question,
           publicPoll: true,
           publishedAt: null,
