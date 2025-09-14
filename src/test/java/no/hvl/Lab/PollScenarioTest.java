@@ -22,7 +22,6 @@ public class PollScenarioTest {
 
     @Autowired TestRestTemplate http;
 
-
     private String url(String path) {
         return "http://localhost:" + port + path;
     }
