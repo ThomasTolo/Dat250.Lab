@@ -34,4 +34,4 @@ DAT250 Experiment Assignment 3 Report - Thomas Tolo Jensen
 
 **Pending Issues:**
 - Did not implement GraphQL, struggled a bit with changing from REST API, could solve this, but do not have enough time to implement it for this week
--
+- 

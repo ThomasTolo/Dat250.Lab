@@ -34,6 +34,13 @@ tasks.withType<Test> {
 	useJUnitPlatform()
 }
 
+test {
+    reports {
+        junitXml.enabled = true
+        html.enabled = true
+    }
+}
+
 
 
 
