@@ -1,10 +1,10 @@
 @host = http://localhost:8080
 
-@u1Id = e693e407-ecd3-49e9-bd45-d4115b1fc980
+@u1Id = 2fed906b-52ad-428d-b9d3-baadcb415608
 @u2Id = 7f863d4d-62a4-418b-8607-bd9f340177f4
-@pollId = 1cf53506-eddc-452c-b3bb-31f2ea541bb3
-@redOptionId = 08ea2d21-3895-429c-ae60-3ff975d55a51
-@blueOptionId = a26496f7-240e-4c95-b5a0-dce00108fab8
+@pollId = 8d51756d-407d-4da8-9ab6-22082d798ab8
+@redOptionId = 8fe97594-64b4-4009-940c-0e036e4c37d8
+@blueOptionId = 88a9dae3-0797-462b-8b94-8b98a106f1c4
 
 #Source: https://www.rfc-editor.org/rfc/rfc9110.html
 # https://learn.microsoft.com/en-us/aspnet/core/test/http-files?view=aspnetcore-9.0
@@ -55,32 +55,29 @@ GET {{host}}/api/users
 # Captures: {{pollId}}, {{redOptionId}}, {{blueOptionId}}
 ############################################################
 # @name createPoll
-POST {{host}}/api/polls
+POST {{host}}/api/polls?userId={{u1Id}}
 Content-Type: application/json
 
 {
   "creatorUserId": "{{u1Id}}",
   "question": "Your favorite color?",
   "publicPoll": true,
-  "publishedAt": "2025-01-01T00:00:00Z",
-  "validUntil": "2026-01-01T00:00:00Z",
+  "publishedAt": "2025-01-01T00:00:00.000Z",
+  "validUntil": "2026-01-01T00:00:00.000Z",
   "options": [
     { "caption": "Red",   "presentationOrder": 1 },
     { "caption": "Blue",  "presentationOrder": 2 },
     { "caption": "Green", "presentationOrder": 3 }
   ]
 }
-
 > {%
   const body = JSON.parse(response.body);
   client.global.set("pollId", body.id);
-  if (Array.isArray(body.options)) {
-    const red  = body.options.find(o => o.caption === "Red");
-    const blue = body.options.find(o => o.caption === "Blue");
-    if (red)  client.global.set("redOptionId",  red.id);
-    if (blue) client.global.set("blueOptionId", blue.id);
-  }
+  client.global.set("redOptionId", body.options.find(o => o.caption === "Red").id);
+  client.global.set("blueOptionId", body.options.find(o => o.caption === "Blue").id);
+  client.global.set("greenOptionId", body.options.find(o => o.caption === "Green").id);
 %}
+
 
 ###
 # List polls (should show the new poll)

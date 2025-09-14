@@ -8,6 +8,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 
+import java.time.Instant;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -79,15 +80,15 @@ public class PollScenarioTest {
         pollReq.put("creatorUserId", u1Id);
         pollReq.put("question", "Your favorite color?");
         pollReq.put("publicPoll", true);
-        pollReq.put("publishedAt", "2025-01-01T00:00:00Z");
-        pollReq.put("validUntil", "2026-01-01T00:00:00Z");
+        pollReq.put("publishedAt", Instant.parse("2025-01-01T00:00:00Z"));
+        pollReq.put("validUntil", Instant.parse("2026-01-01T00:00:00Z"));
         pollReq.put("options", List.of(
                 Map.of("caption","Red",   "presentationOrder", 1),
                 Map.of("caption","Blue",  "presentationOrder", 2),
                 Map.of("caption","Green", "presentationOrder", 3)
         ));
 
-        ResponseEntity<Map> pollRes = postJson("/api/polls", pollReq, Map.class);
+        ResponseEntity<Map> pollRes = postJson("/api/polls?userId=" + u1Id, pollReq, Map.class);
         assert2xx(pollRes, "create poll");
         Map poll = Objects.requireNonNull(pollRes.getBody());
         String pollId = (String) poll.get("id");
