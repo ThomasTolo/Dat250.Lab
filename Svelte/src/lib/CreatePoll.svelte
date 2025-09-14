@@ -2,6 +2,11 @@
   // Poll Creation Component: Handles poll question and options input 
   let question = '';
   let options = [''];
+  let publicPoll = true;
+  let publishedAt = '';
+  let validUntil = '';
+  let maxVotesPerUser = 1;
+  let invitedUsernames = '';
 
   // Add Option: Add a new empty option field
   function addOption() {
@@ -16,29 +21,38 @@
 
   // Create Poll: Send new poll data to backend API
   async function createPoll() {
+    if (!voterUserId) {
+      alert('You must be logged in to create a poll');
+      return;
+    }
     // Filter out empty options before sending
     const filteredOptions = options
       .map((caption) => caption)
       .filter(opt => opt && opt.trim() !== '');
-
+    const pollData = {
+      creatorUserId: voterUserId,
+      question,
+      publicPoll,
+      publishedAt: publishedAt ? new Date(publishedAt).toISOString() : null,
+      validUntil: validUntil ? new Date(validUntil).toISOString() : null,
+      maxVotesPerUser: publicPoll ? null : maxVotesPerUser,
+      invitedUsernames: publicPoll ? [] : invitedUsernames.split(',').map(u => u.trim()).filter(u => u),
+      options: filteredOptions.map((caption, i) => ({ caption, presentationOrder: i }) )
+    };
     try {
-      const res = await fetch('/api/polls', {
+      const res = await fetch(`/api/polls?userId=${voterUserId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          creatorUserId: voterUserId,
-          question,
-          publicPoll: true,
-          publishedAt: null,
-          validUntil: null,
-          maxVotesPerUser: null,
-          invitedUsernames: [],
-          options: filteredOptions.map((caption, i) => ({ caption, presentationOrder: i }))
-        })
+        body: JSON.stringify(pollData)
       });
       if (res.ok) {
         question = '';
         options = [''];
+        publicPoll = true;
+        publishedAt = '';
+        validUntil = '';
+        maxVotesPerUser = 1;
+        invitedUsernames = '';
         dispatch('pollCreated');
       } else {
         alert('Failed to create poll');
@@ -58,6 +72,15 @@
     {/each}
     <button on:click={addOption}>Add Option</button>
   </div>
+  <label><input type="checkbox" bind:checked={publicPoll} /> {publicPoll ? 'Public poll' : 'Private poll'}</label>
+  <div>
+    <label>Published at: <input type="datetime-local" bind:value={publishedAt} /></label>
+    <label>Deadline: <input type="datetime-local" bind:value={validUntil} /></label>
+  </div>
+  {#if !publicPoll}
+    <label>Max votes per user: <input type="number" min="1" bind:value={maxVotesPerUser} /></label>
+    <label>Invited usernames (comma separated): <input type="text" bind:value={invitedUsernames} /></label>
+  {/if}
   <button on:click={createPoll}>Create Poll</button>
 </div>
 

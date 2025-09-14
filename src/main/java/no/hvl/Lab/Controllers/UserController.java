@@ -24,6 +24,12 @@ public class UserController {
         return manager.registerUser(req.username, req.password, req.email);
     }
 
+    @PostMapping("/login")
+    public User login(@RequestBody CreateUserRequest req) {
+        return manager.loginUser(req.username, req.password)
+            .orElseThrow(() -> new IllegalArgumentException("Invalid username or password"));
+    }
+
     @GetMapping
     public Collection<User> list() { return manager.allUsers(); }
 

@@ -92,7 +92,7 @@
   // API Integration: Fetch votes for the current poll from backend
   async function fetchVotes() {
     try {
-      const res = await fetch(`/api/polls/${poll.id}/votes`);
+      const res = await fetch(`/api/polls/${poll.id}/votes?userId=${voterUserId}`);
       if (!res.ok) throw new Error('Failed to fetch votes');
       votes = await res.json();
       console.log('Fetched votes for poll', poll.id, votes);
@@ -108,9 +108,13 @@
 
   // Poll Management: Delete the current poll via backend API
   async function deletePoll() {
+    if (poll.creatorUserId !== voterUserId) {
+      alert('Only the creator can delete this poll');
+      return;
+    }
     if (!confirm('Er du sikker på at du vil slette denne poll-en?')) return;
     try {
-      const res = await fetch(`/api/polls/${poll.id}`, {
+      const res = await fetch(`/api/polls/${poll.id}?userId=${voterUserId}`, {
         method: 'DELETE'
       });
       if (res.ok) {
@@ -124,6 +128,14 @@
   }
   // Voting: Send upvote/downvote for a poll option to backend
   async function vote(index, isUpvote) {
+    if (!voterUserId) {
+      alert('You must be logged in to vote');
+      return;
+    }
+    if (poll.validUntil && new Date() > new Date(poll.validUntil)) {
+      alert('Voting is closed for this poll');
+      return;
+    }
     if (!poll.options || !poll.options[index]) {
       alert('Alternativ mangler!');
       return;
@@ -134,14 +146,14 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           optionId: poll.options[index].id,
-          voterUserId: voterUserId || null,
+          voterUserId,
           anonymous: !voterUserId,
-          isUpvote: isUpvote
+          isUpvote
         })
       });
       if (!res.ok) throw new Error('Failed to vote');
-  await fetchVotes();
-  dispatch('voted');
+      await fetchVotes();
+      dispatch('voted');
     } catch (e) {
       await fetchVotes();
       alert('Feil ved stemming');
@@ -186,6 +198,9 @@
     {:else}
       <div class="poll-option-row">Ingen alternativer tilgjengelig.</div>
     {/if}
+  </div>
+  <div class="poll-deadline" style="margin-top:1em; text-align:right; color:#aaa; font-size:0.95em;">
+    Deadline: {poll.validUntil ? new Date(poll.validUntil).toLocaleString() : 'N/A'}
   </div>
 </div>
 

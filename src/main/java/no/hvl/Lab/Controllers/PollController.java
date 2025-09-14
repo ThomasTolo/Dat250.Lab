@@ -18,7 +18,11 @@ public class PollController {
 	public PollController(PollManager manager) { this.manager = manager; }
 
 	@PostMapping
-	public Poll create(@RequestBody CreatePollRequest req) {
+	public Poll create(@RequestBody CreatePollRequest req, @RequestParam(required = true) UUID userId) {
+		// Only allow poll creation if userId matches a registered user
+		if (!manager.findUser(userId).isPresent()) {
+			throw new IllegalArgumentException("User must be registered to create a poll");
+		}
 		Poll poll = manager.createPoll(
 			req.creatorUserId,
 			req.question,
@@ -34,7 +38,16 @@ public class PollController {
 	}
 
 	@GetMapping
-	public Collection<Poll> list() { return manager.allPolls(); }
+	public Collection<Poll> list(@RequestParam(required = false) String username) {
+		if (username == null || username.isEmpty()) {
+			return manager.publicPolls();
+		} else {
+			List<Poll> result = new ArrayList<>();
+			result.addAll(manager.publicPolls());
+			result.addAll(manager.privatePollsVisibleTo(username));
+			return result;
+		}
+	}
 
 	@GetMapping("/{pollId}")
 	public Poll get(@PathVariable UUID pollId) {

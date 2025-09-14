@@ -17,47 +17,53 @@
     });
   }
 
-  function getUsers() {
-    return JSON.parse(localStorage.getItem('users') || '{}');
-  }
-
-  function saveUsers(users) {
-    localStorage.setItem('users', JSON.stringify(users));
-  }
-
-  function handleLogin() {
+  async function handleLogin() {
     if (!username || !password) {
       error = 'Username and password required';
       return;
     }
-    const users = getUsers();
-    if (!users[username]) {
-      error = 'User not found, try to register';
-      return;
+    try {
+      const res = await fetch('/api/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      if (!res.ok) {
+        error = 'Invalid username or password';
+        return;
+      }
+      const user = await res.json();
+      error = '';
+      localStorage.setItem('userId', user.id);
+  dispatch('login', { user });
+    } catch (e) {
+      error = 'Login failed';
     }
-    if (users[username].password !== password) {
-      error = 'Incorrect password';
-      return;
-    }
-    error = '';
-    dispatch('login', { username, voterUserId: users[username].id });
   }
 
-  function handleRegister() {
+  async function handleRegister() {
     if (!username || !password || !email) {
       error = 'All fields required';
       return;
     }
-    const users = getUsers();
-    if (users[username]) {
-      error = 'Username already exists';
-      return;
+    try {
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password, email })
+      });
+      if (!res.ok) {
+        const msg = await res.text();
+        error = msg.includes('Username already exists') ? 'Username already exists' : 'Registration failed';
+        return;
+      }
+      const user = await res.json();
+      error = '';
+      localStorage.setItem('userId', user.id);
+  dispatch('login', { user });
+    } catch (e) {
+      error = 'Registration failed';
     }
-    const id = generateUUID();
-    users[username] = { id, password, email };
-    saveUsers(users);
-    error = '';
-    dispatch('login', { username, voterUserId: id });
   }
 </script>
 

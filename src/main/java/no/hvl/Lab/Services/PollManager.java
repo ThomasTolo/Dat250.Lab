@@ -35,6 +35,12 @@ public class PollManager {
 
     // Users
     public User registerUser(String username, String password, String email) {
+        // Prevent duplicate usernames
+        for (User u : users.values()) {
+            if (u.getUsername().equalsIgnoreCase(username)) {
+                throw new IllegalArgumentException("Username already exists");
+            }
+        }
         User u = new User();
         u.setId(UUID.randomUUID());
         u.setUsername(username);
@@ -42,6 +48,15 @@ public class PollManager {
         u.setEmail(email);
         users.put(u.getId(), u);
         return u;
+    }
+
+    public Optional<User> loginUser(String username, String password) {
+        for (User u : users.values()) {
+            if (u.getUsername().equalsIgnoreCase(username) && u.getPassword().equals(password)) {
+                return Optional.of(u);
+            }
+        }
+        return Optional.empty();
     }
 
     public Optional<User> findUser(UUID id) { return Optional.ofNullable(users.get(id)); }
@@ -153,38 +168,64 @@ public void deletePoll(UUID pollId) {
 
 // change vote = keep only the newest vote per user for listing
 
-public Vote castOrChangeVote(UUID pollId, UUID optionId, UUID voterUserId, boolean anonymous, boolean isUpvote) {
-    Poll poll = polls.get(pollId);
-    if (poll == null) throw new NoSuchElementException("Poll not found: " + pollId);
+    public Vote castOrChangeVote(UUID pollId, UUID optionId, UUID voterUserId, boolean anonymous, boolean isUpvote) {
+        Poll poll = polls.get(pollId);
+        if (poll == null) throw new NoSuchElementException("Poll not found: " + pollId);
 
-    // Find and update existing vote for this user and option
-    Vote updatedVote = null;
-    for (UUID vId : poll.getVoteIds()) {
-        Vote v = votes.get(vId);
-        if (v == null) continue;
-        if (Objects.equals(v.getOptionId(), optionId) && Objects.equals(v.getVoterUserId(), voterUserId)) {
-            v.setUpvote(isUpvote);
-            v.setAnonymous(anonymous);
-            v.setPublishedAt(Instant.now());
-            updatedVote = v;
-            System.out.println("[DEBUG] Updated vote: id=" + v.getId() + ", isUpvote=" + v.isUpvote());
-            break;
+        Instant now = Instant.now();
+        // Enforce published/deadline timestamps
+        if (poll.getPublishedAt() != null && now.isBefore(poll.getPublishedAt())) {
+            throw new IllegalStateException("Poll not yet published");
         }
-    }
-    if (updatedVote == null) {
-        updatedVote = castVote(pollId, optionId, voterUserId, anonymous, isUpvote);
-        System.out.println("[DEBUG] Created vote: id=" + updatedVote.getId() + ", isUpvote=" + updatedVote.isUpvote());
-    }
-    // Debug: print all votes for this poll after update
-    System.out.println("[DEBUG] All votes for poll " + pollId + ":");
-    for (UUID vId : poll.getVoteIds()) {
-        Vote v = votes.get(vId);
-        if (v != null) {
-            System.out.println("  voteId=" + v.getId() + ", optionId=" + v.getOptionId() + ", voterUserId=" + v.getVoterUserId() + ", isUpvote=" + v.isUpvote());
+        if (poll.getValidUntil() != null && now.isAfter(poll.getValidUntil())) {
+            throw new IllegalStateException("Poll deadline has passed");
         }
+
+        // Private poll: enforce max votes per user
+        if (!poll.isPublicPoll() && poll.getMaxVotesPerUser() != null && voterUserId != null) {
+            int userVotes = 0;
+            for (UUID vId : poll.getVoteIds()) {
+                Vote v = votes.get(vId);
+                if (v != null && Objects.equals(v.getVoterUserId(), voterUserId)) {
+                    userVotes++;
+                }
+            }
+            if (userVotes >= poll.getMaxVotesPerUser()) {
+                throw new IllegalStateException("Max votes per user reached");
+            }
+        }
+
+        // Public poll: allow anonymous/multiple votes
+        // (no restriction, except time window)
+
+        // Find and update existing vote for this user and option
+        Vote updatedVote = null;
+        for (UUID vId : poll.getVoteIds()) {
+            Vote v = votes.get(vId);
+            if (v == null) continue;
+            if (Objects.equals(v.getOptionId(), optionId) && Objects.equals(v.getVoterUserId(), voterUserId)) {
+                v.setUpvote(isUpvote);
+                v.setAnonymous(anonymous);
+                v.setPublishedAt(now);
+                updatedVote = v;
+                System.out.println("[DEBUG] Updated vote: id=" + v.getId() + ", isUpvote=" + v.isUpvote());
+                break;
+            }
+        }
+        if (updatedVote == null) {
+            updatedVote = castVote(pollId, optionId, voterUserId, anonymous, isUpvote);
+            System.out.println("[DEBUG] Created vote: id=" + updatedVote.getId() + ", isUpvote=" + updatedVote.isUpvote());
+        }
+        // Debug: print all votes for this poll after update
+        System.out.println("[DEBUG] All votes for poll " + pollId + ":");
+        for (UUID vId : poll.getVoteIds()) {
+            Vote v = votes.get(vId);
+            if (v != null) {
+                System.out.println("  voteId=" + v.getId() + ", optionId=" + v.getOptionId() + ", voterUserId=" + v.getVoterUserId() + ", isUpvote=" + v.isUpvote());
+            }
+        }
+        return updatedVote;
     }
-    return updatedVote;
-}
 
 // latest per user (deduplicate by voterUserId, keep most recent)
 public List<Vote> votesForPollLatestPerUser(UUID pollId) {
