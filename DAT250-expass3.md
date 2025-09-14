@@ -33,5 +33,5 @@ DAT250 Experiment Assignment 3 Report - Thomas Tolo Jensen
 [GitHub Repository - DAT250.Lab](https://github.com/ThomasTolo/Dat250.Lab)
 
 **Pending Issues:**
-- Did not implement the optional microservice/reverse-proxy architecture
-
+- Did not implement GraphQL, struggled a bit with changing from REST API, could solve this, but do not have enough time to implement it for this week
+-
