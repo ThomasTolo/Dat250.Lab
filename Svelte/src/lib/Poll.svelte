@@ -46,7 +46,6 @@
   // voterUserId is now passed as a prop from App.svelte
 
   // Always fetch votes on mount and whenever poll.id changes
-  // Removed duplicate import
   let lastPollId = '';
   onMount(() => {
     fetchVotes();
