@@ -1,15 +1,17 @@
-# Why We Use `persistence.xml`
 
-The `persistence.xml` file is a standard configuration file required by JPA. It defines the persistence unit, which includes settings for the database connection, JPA provider (such as Hibernate), entity scanning, and additional properties (like dialect, schema generation, and connection pool settings). This file allows the application to know how to connect to the database and how to manage entities. Without `persistence.xml`, JPA cannot initialize the persistence context or entity manager.
 
-# Why We Removed `import jakarta.persistence.PersistenceConfiguration;`
-
-The import `jakarta.persistence.PersistenceConfiguration;` was removed because it does not exist in the standard JPA API. JPA configuration is handled via the `persistence.xml` file and not through a `PersistenceConfiguration` class. Keeping this import would cause compile errors. All necessary configuration should be placed in `persistence.xml` or as properties in the application configuration files.
 # DAT250 Experiment Assignment 4 Report
 
 ## Technical Problems Encountered with JPA
 
 During the installation and use of Java Persistence Architecture (JPA) with Hibernate and H2, several technical issues were encountered:
+# Why We Removed `import jakarta.persistence.PersistenceConfiguration;`
+
+The import `jakarta.persistence.PersistenceConfiguration;` was removed because it does not exist in the standard JPA API. JPA configuration is handled via the `persistence.xml` file and not through a `PersistenceConfiguration` class. Keeping this import would cause compile errors. All necessary configuration should be placed in `persistence.xml` or as properties in the application configuration files.
+# Why We Use `persistence.xml`
+
+The `persistence.xml` file is a standard configuration file required by JPA. It defines the persistence unit, which includes settings for the database connection, JPA provider (such as Hibernate), entity scanning, and additional properties (like dialect, schema generation, and connection pool settings). This file allows the application to know how to connect to the database and how to manage entities. Without `persistence.xml`, JPA cannot initialize the persistence context or entity manager.
+
 
 - **Identifier Generation Exception:** Initially, entities used `UUID` as IDs, which caused `IdentifierGenerationException` because JPA/Hibernate expects auto-generated numeric IDs by default. This was resolved by switching all entity IDs to `Long` and annotating them with `@GeneratedValue(strategy = GenerationType.IDENTITY)`.
 - **Lock Timeout Errors:** The H2 in-memory database would sometimes throw lock timeout errors during tests. This was fixed by adding `;LOCK_TIMEOUT=10000` to the JDBC URL in `persistence.xml` for both main and test resources.
