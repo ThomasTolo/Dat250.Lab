@@ -1,69 +1,77 @@
+
 package no.hvl.Lab.Services;
-
-import org.springframework.stereotype.Component;
-
-import no.hvl.Lab.Domain.*;
-
+import jakarta.persistence.*;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.*;
+import no.hvl.Lab.Domain.*;
 
-
-@Component
+@Service
+@Transactional
 public class PollManager {
-    public int getNetVotesForOption(UUID pollId, UUID optionId) {
-        Poll poll = polls.get(pollId);
+    @PersistenceContext
+       private EntityManager em;
+
+    @Transactional(readOnly = true)
+    public int getNetVotesForOption(Long pollId, Long optionId) {
+        Poll poll = em.find(Poll.class, pollId);
         if (poll == null) return 0;
         int net = 0;
-        for (UUID vId : poll.getVoteIds()) {
-            Vote v = votes.get(vId);
-            if (v == null) continue;
-            if (optionId.equals(v.getOptionId())) {
-                // Upvote = +1, Downvote = -1
-                if (v.isUpvote()) {
-                    net += 1;
-                } else {
-                    net -= 1;
+        for (VoteOption option : poll.getOptions()) {
+            if (option.getId().equals(optionId)) {
+                String jpql = "SELECT v FROM Vote v WHERE v.poll.id = :pollId AND v.option.id = :optionId";
+                List<Vote> votes = em.createQuery(jpql, Vote.class)
+                        .setParameter("pollId", pollId)
+                        .setParameter("optionId", optionId)
+                        .getResultList();
+                for (Vote v : votes) {
+                    net += v.isUpvote() ? 1 : -1;
                 }
             }
         }
         return net;
     }
 
-    private final Map<UUID, User> users = new HashMap<>();
-    private final Map<UUID, Poll> polls = new HashMap<>();
-    private final Map<UUID, Vote> votes = new HashMap<>();
-
     // Users
     public User registerUser(String username, String password, String email) {
-        // Prevent duplicate usernames
-        for (User u : users.values()) {
-            if (u.getUsername().equalsIgnoreCase(username)) {
-                throw new IllegalArgumentException("Username already exists");
-            }
+        String jpql = "SELECT u FROM User u WHERE LOWER(u.username) = :username";
+        List<User> existing = em.createQuery(jpql, User.class)
+                .setParameter("username", username.toLowerCase())
+                .getResultList();
+        if (!existing.isEmpty()) {
+            throw new IllegalArgumentException("Username already exists");
         }
-        User u = new User();
-        u.setId(UUID.randomUUID());
-        u.setUsername(username);
-        u.setPassword(password);
-        u.setEmail(email);
-        users.put(u.getId(), u);
-        return u;
+    User u = new User();
+    u.setUsername(username);
+    u.setPassword(password);
+    u.setEmail(email);
+    em.persist(u);
+    return u;
     }
 
+    @Transactional(readOnly = true)
     public Optional<User> loginUser(String username, String password) {
-        for (User u : users.values()) {
-            if (u.getUsername().equalsIgnoreCase(username) && u.getPassword().equals(password)) {
-                return Optional.of(u);
-            }
-        }
-        return Optional.empty();
+        String jpql = "SELECT u FROM User u WHERE LOWER(u.username) = :username AND u.password = :password";
+        List<User> users = em.createQuery(jpql, User.class)
+                .setParameter("username", username.toLowerCase())
+                .setParameter("password", password)
+                .getResultList();
+        return users.isEmpty() ? Optional.empty() : Optional.of(users.get(0));
     }
 
-    public Optional<User> findUser(UUID id) { return Optional.ofNullable(users.get(id)); }
-    public Collection<User> allUsers() { return users.values(); }
+    @Transactional(readOnly = true)
+    public Optional<User> findUser(Long id) {
+        User u = em.find(User.class, id);
+        return Optional.ofNullable(u);
+    }
+    @Transactional(readOnly = true)
+    public List<User> allUsers() {
+        return em.createQuery("SELECT u FROM User u", User.class).getResultList();
+    }
 
-    // Polls 
-    public Poll createPoll(UUID creatorUserId,
+    // Polls
+    public Poll createPoll(Long creatorUserId,
                            String question,
                            boolean isPublic,
                            Instant publishedAt,
@@ -71,10 +79,10 @@ public class PollManager {
                            Integer maxVotesPerUser,
                            Collection<String> invitedUsernames,
                            Collection<VoteOption> options) {
-
-        Poll p = new Poll();
-        p.setId(UUID.randomUUID());
-        p.setCreatorUserId(creatorUserId);
+        User creator = em.find(User.class, creatorUserId);
+        if (creator == null) throw new IllegalArgumentException("User not found");
+    Poll p = new Poll();
+        p.setCreatedBy(creator);
         p.setQuestion(question);
         p.setPublicPoll(isPublic);
         p.setPublishedAt(publishedAt);
@@ -83,95 +91,89 @@ public class PollManager {
         if (invitedUsernames != null) p.getInvitedUsernames().addAll(invitedUsernames);
         if (options != null) {
             for (VoteOption vo : options) {
-                if (vo.getId() == null) vo.setId(UUID.randomUUID());
-                vo.setPollId(p.getId());
+                vo.setPoll(p);
                 p.getOptions().add(vo);
+                em.persist(vo);
             }
             p.getOptions().sort(Comparator.comparingInt(VoteOption::getPresentationOrder));
         }
-        polls.put(p.getId(), p);
-
-        // Link back to user (if we have them)
-        User creator = users.get(creatorUserId);
-        if (creator != null) creator.getCreatedPollIds().add(p.getId());
-
+        em.persist(p);
         return p;
     }
 
-    public Optional<Poll> findPoll(UUID id) { return Optional.ofNullable(polls.get(id)); }
-    public Collection<Poll> allPolls() { return polls.values(); }
-
-    // Votes
-    public Vote castVote(UUID pollId, UUID optionId, UUID voterUserId, boolean anonymous) {
-        return castVote(pollId, optionId, voterUserId, anonymous, true); // default to upvote for legacy calls
+    @Transactional(readOnly = true)
+    public Optional<Poll> findPoll(Long id) {
+        Poll p = em.find(Poll.class, id);
+        return Optional.ofNullable(p);
+    }
+    @Transactional(readOnly = true)
+    public List<Poll> allPolls() {
+        return em.createQuery("SELECT p FROM Poll p", Poll.class).getResultList();
     }
 
-    public Vote castVote(UUID pollId, UUID optionId, UUID voterUserId, boolean anonymous, boolean isUpvote) {
-        Poll poll = polls.get(pollId);
-        if (poll == null) throw new NoSuchElementException("Poll not found: " + pollId);
+    // Votes
+    public Vote castVote(Long pollId, Long optionId, Long voterUserId, boolean anonymous) {
+        return castVote(pollId, optionId, voterUserId, anonymous, true);
+    }
 
+    public Vote castVote(Long pollId, Long optionId, Long voterUserId, boolean anonymous, boolean isUpvote) {
+        Poll poll = em.find(Poll.class, pollId);
+        if (poll == null) throw new NoSuchElementException("Poll not found: " + pollId);
+        VoteOption option = em.find(VoteOption.class, optionId);
+        if (option == null) throw new NoSuchElementException("Option not found: " + optionId);
         Vote v = new Vote();
-        v.setId(UUID.randomUUID());
-        v.setPollId(pollId);
-        v.setOptionId(optionId);
+        v.setPoll(poll);
+        v.setOption(option);
         v.setVoterUserId(voterUserId);
         v.setAnonymous(anonymous);
         v.setPublishedAt(Instant.now());
         v.setUpvote(isUpvote);
-
-        votes.put(v.getId(), v);
-        poll.getVoteIds().add(v.getId());
-
-        if (voterUserId != null) {
-            User u = users.get(voterUserId);
-            if (u != null) u.getVoteIds().add(v.getId());
-        }
+        em.persist(v);
         return v;
     }
 
-    public Optional<Vote> findVote(UUID id) { return Optional.ofNullable(votes.get(id)); }
+    @Transactional(readOnly = true)
+    public Optional<Vote> findVote(Long id) {
+        Vote v = em.find(Vote.class, id);
+        return Optional.ofNullable(v);
+    }
 
     // Convenience queries
+    @Transactional(readOnly = true)
     public List<Poll> publicPolls() {
-        List<Poll> res = new ArrayList<>();
-        for (Poll p : polls.values()) if (p.isPublicPoll()) res.add(p);
-        return res;
+        return em.createQuery("SELECT p FROM Poll p WHERE p.publicPoll = true", Poll.class).getResultList();
     }
 
+    @Transactional(readOnly = true)
     public List<Poll> privatePollsVisibleTo(String username) {
-        List<Poll> res = new ArrayList<>();
-        for (Poll p : polls.values()) {
-            if (!p.isPublicPoll() && (p.getInvitedUsernames().contains(username))) {
-                res.add(p);
-            }
-        }
-        return res;
+    String jpql = "SELECT DISTINCT p FROM Poll p LEFT JOIN p.invitedUsernames u " +
+        "WHERE p.publicPoll = false AND (u = :username OR LOWER(p.createdBy.username) = LOWER(:username))";
+    return em.createQuery(jpql, Poll.class)
+        .setParameter("username", username)
+        .getResultList();
     }
+
     // delete a poll and its votes
-public void deletePoll(UUID pollId) {
-    Poll p = polls.remove(pollId);
-    if (p == null) return;
-    // remove votes tied to this poll
-    for (UUID vId : p.getVoteIds()) {
-        Vote v = votes.remove(vId);
-        if (v != null && v.getVoterUserId() != null) {
-            User u = users.get(v.getVoterUserId());
-            if (u != null) u.getVoteIds().remove(vId);
+    public void deletePoll(Long pollId) {
+        Poll p = em.find(Poll.class, pollId);
+        if (p == null) return;
+        // Remove votes tied to this poll
+        String jpql = "SELECT v FROM Vote v WHERE v.poll.id = :pollId";
+        List<Vote> votes = em.createQuery(jpql, Vote.class)
+                .setParameter("pollId", pollId)
+                .getResultList();
+        for (Vote v : votes) {
+            em.remove(v);
         }
+        em.remove(p);
     }
-    // unlink from creator
-    if (p.getCreatorUserId() != null) {
-        User creator = users.get(p.getCreatorUserId());
-        if (creator != null) creator.getCreatedPollIds().remove(pollId);
-    }
-}
 
-// change vote = keep only the newest vote per user for listing
-
-    public Vote castOrChangeVote(UUID pollId, UUID optionId, UUID voterUserId, boolean anonymous, boolean isUpvote) {
-        Poll poll = polls.get(pollId);
+    // change vote = keep only the newest vote per user for listing
+    public Vote castOrChangeVote(Long pollId, Long optionId, Long voterUserId, boolean anonymous, boolean isUpvote) {
+        Poll poll = em.find(Poll.class, pollId);
         if (poll == null) throw new NoSuchElementException("Poll not found: " + pollId);
-
+        VoteOption option = em.find(VoteOption.class, optionId);
+        if (option == null) throw new NoSuchElementException("Option not found: " + optionId);
         Instant now = Instant.now();
         // Enforce published/deadline timestamps
         if (poll.getPublishedAt() != null && now.isBefore(poll.getPublishedAt())) {
@@ -180,81 +182,61 @@ public void deletePoll(UUID pollId) {
         if (poll.getValidUntil() != null && now.isAfter(poll.getValidUntil())) {
             throw new IllegalStateException("Poll deadline has passed");
         }
-
         // Private poll: enforce max votes per user
         if (!poll.isPublicPoll() && poll.getMaxVotesPerUser() != null && voterUserId != null) {
-            int userVotes = 0;
-            for (UUID vId : poll.getVoteIds()) {
-                Vote v = votes.get(vId);
-                if (v != null && Objects.equals(v.getVoterUserId(), voterUserId)) {
-                    userVotes++;
-                }
-            }
+            String jpql = "SELECT COUNT(v) FROM Vote v WHERE v.poll.id = :pollId AND v.voterUserId = :voterUserId";
+            Long userVotes = em.createQuery(jpql, Long.class)
+                    .setParameter("pollId", pollId)
+                    .setParameter("voterUserId", voterUserId)
+                    .getSingleResult();
             if (userVotes >= poll.getMaxVotesPerUser()) {
                 throw new IllegalStateException("Max votes per user reached");
             }
         }
-
-        // Public poll: allow anonymous/multiple votes
-        // (no restriction, except time window)
-
         // Find and update existing vote for this user and option
+        String jpql = "SELECT v FROM Vote v WHERE v.poll.id = :pollId AND v.option.id = :optionId AND v.voterUserId = :voterUserId";
+        List<Vote> existingVotes = em.createQuery(jpql, Vote.class)
+                .setParameter("pollId", pollId)
+                .setParameter("optionId", optionId)
+                .setParameter("voterUserId", voterUserId)
+                .getResultList();
         Vote updatedVote = null;
-        for (UUID vId : poll.getVoteIds()) {
-            Vote v = votes.get(vId);
-            if (v == null) continue;
-            if (Objects.equals(v.getOptionId(), optionId) && Objects.equals(v.getVoterUserId(), voterUserId)) {
-                v.setUpvote(isUpvote);
-                v.setAnonymous(anonymous);
-                v.setPublishedAt(now);
-                updatedVote = v;
-                System.out.println("[DEBUG] Updated vote: id=" + v.getId() + ", isUpvote=" + v.isUpvote());
-                break;
-            }
-        }
-        if (updatedVote == null) {
+        if (!existingVotes.isEmpty()) {
+            updatedVote = existingVotes.get(0);
+            updatedVote.setUpvote(isUpvote);
+            updatedVote.setAnonymous(anonymous);
+            updatedVote.setPublishedAt(now);
+            em.merge(updatedVote);
+        } else {
             updatedVote = castVote(pollId, optionId, voterUserId, anonymous, isUpvote);
-            System.out.println("[DEBUG] Created vote: id=" + updatedVote.getId() + ", isUpvote=" + updatedVote.isUpvote());
-        }
-        // Debug: print all votes for this poll after update
-        System.out.println("[DEBUG] All votes for poll " + pollId + ":");
-        for (UUID vId : poll.getVoteIds()) {
-            Vote v = votes.get(vId);
-            if (v != null) {
-                System.out.println("  voteId=" + v.getId() + ", optionId=" + v.getOptionId() + ", voterUserId=" + v.getVoterUserId() + ", isUpvote=" + v.isUpvote());
-            }
         }
         return updatedVote;
     }
 
-// latest per user (deduplicate by voterUserId, keep most recent)
-public List<Vote> votesForPollLatestPerUser(UUID pollId) {
-    Map<UUID, Vote> latest = new HashMap<>();
-    Poll p = polls.get(pollId);
-    if (p == null) return List.of();
-    for (UUID vId : p.getVoteIds()) {
-        Vote v = votes.get(vId);
-        if (v == null) continue;
-        UUID key = v.getVoterUserId(); // null (anonymous) will collapse all anon into one; OK for demo
-        Vote prev = latest.get(key);
-        if (prev == null || (v.getPublishedAt() != null && v.getPublishedAt().isAfter(prev.getPublishedAt()))) {
-            latest.put(key, v);
+    // latest per user (deduplicate by voterUserId, keep most recent)
+    @Transactional(readOnly = true)
+    public List<Vote> votesForPollLatestPerUser(Long pollId) {
+        String jpql = "SELECT v FROM Vote v WHERE v.poll.id = :pollId ORDER BY v.publishedAt DESC";
+        List<Vote> allVotes = em.createQuery(jpql, Vote.class)
+                .setParameter("pollId", pollId)
+                .getResultList();
+        Map<Long, Vote> latest = new HashMap<>();
+        for (Vote v : allVotes) {
+            Long key = v.getVoterUserId();
+            if (key != null && !latest.containsKey(key)) {
+                latest.put(key, v);
+            }
         }
+        return new ArrayList<>(latest.values());
     }
-    return new ArrayList<>(latest.values());
-}
 
-// Return all votes for a poll
-public List<Vote> votesForPoll(UUID pollId) {
-    Poll p = polls.get(pollId);
-    if (p == null) return List.of();
-    List<Vote> result = new ArrayList<>();
-    for (UUID vId : p.getVoteIds()) {
-        Vote v = votes.get(vId);
-        if (v != null) result.add(v);
+    // Return all votes for a poll
+    @Transactional(readOnly = true)
+    public List<Vote> votesForPoll(Long pollId) {
+        String jpql = "SELECT v FROM Vote v WHERE v.poll.id = :pollId";
+        return em.createQuery(jpql, Vote.class)
+                .setParameter("pollId", pollId)
+                .getResultList();
     }
-    return result;
-}
-
 
 }

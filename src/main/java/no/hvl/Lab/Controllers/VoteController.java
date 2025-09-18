@@ -9,7 +9,7 @@ import no.hvl.Lab.Services.PollManager;
 import no.hvl.Lab.RawWebSocketServer;
 
 import java.util.List;
-import java.util.UUID;
+
 
 @CrossOrigin
 @RestController
@@ -19,36 +19,37 @@ public class VoteController {
     public VoteController(PollManager manager) { this.manager = manager; }
 
     @PostMapping
-    public Vote cast(@PathVariable UUID pollId, @RequestBody VoteRequest req) {
+    public Vote cast(@PathVariable Long pollId, @RequestBody VoteRequest req) {
         Vote vote = manager.castOrChangeVote(pollId, req.optionId, req.voterUserId, req.anonymous, req.isUpvote);
         RawWebSocketServer.broadcast("votesUpdated");
         return manager.findVote(vote.getId()).orElse(vote);
     }
 
     @GetMapping
-    public List<Vote> listAllVotes(@PathVariable UUID pollId) {
+    public List<Vote> listAllVotes(@PathVariable Long pollId) {
+        // Return all votes; frontend aggregates latest-per-user
         return manager.votesForPoll(pollId);
     }
 
     @GetMapping("/{voteId}")
-    public Vote get(@PathVariable UUID pollId, @PathVariable UUID voteId) {
+    public Vote get(@PathVariable Long pollId, @PathVariable Long voteId) {
         return manager.findVote(voteId).orElseThrow();
     }
 
     @PutMapping("/{voteId}")
-    public Vote update(@PathVariable UUID pollId, @PathVariable UUID voteId, @RequestBody VoteRequest req) {
-    Vote vote = manager.castOrChangeVote(pollId, req.optionId, req.voterUserId, req.anonymous, req.isUpvote);
-    return manager.findVote(vote.getId()).orElse(vote);
+    public Vote update(@PathVariable Long pollId, @PathVariable Long voteId, @RequestBody VoteRequest req) {
+        Vote vote = manager.castOrChangeVote(pollId, req.optionId, req.voterUserId, req.anonymous, req.isUpvote);
+        return manager.findVote(vote.getId()).orElse(vote);
     }
 
     @DeleteMapping("/{voteId}")
-    public void delete(@PathVariable UUID pollId, @PathVariable UUID voteId) {
+    public void delete(@PathVariable Long pollId, @PathVariable Long voteId) {
     }
 
     public static class VoteRequest {
-    public UUID optionId;
-    public UUID voterUserId; // null if anonymous
-    public boolean anonymous;
-    public boolean isUpvote;
+    public Long optionId;
+        public Long voterUserId; // null if anonymous
+        public boolean anonymous;
+        public boolean isUpvote;
     }
 }

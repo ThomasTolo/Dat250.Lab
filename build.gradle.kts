@@ -27,6 +27,13 @@ dependencies {
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:2.6.0")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework:spring-messaging")
+	implementation("org.hibernate.orm:hibernate-core:6.4.4.Final")
+    implementation("com.h2database:h2:2.2.224")
+	implementation("jakarta.persistence:jakarta.persistence-api:3.1.0")
+	testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+
+    
 
 }
 

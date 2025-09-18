@@ -8,7 +8,7 @@ import no.hvl.Lab.Domain.VoteOption;
 import no.hvl.Lab.Services.PollManager;
 
 import java.util.*;
-import java.util.UUID;
+
 
 @CrossOrigin
 @RestController
@@ -18,7 +18,7 @@ public class PollController {
 	public PollController(PollManager manager) { this.manager = manager; }
 
 	@PostMapping
-	public Poll create(@RequestBody CreatePollRequest req, @RequestParam(required = true) UUID userId) {
+	public Poll create(@RequestBody CreatePollRequest req, @RequestParam(required = true) Long userId) {
 		// Only allow poll creation if userId matches a registered user
 		if (!manager.findUser(userId).isPresent()) {
 			throw new IllegalArgumentException("User must be registered to create a poll");
@@ -50,18 +50,24 @@ public class PollController {
 	}
 
 	@GetMapping("/{pollId}")
-	public Poll get(@PathVariable UUID pollId) {
+	public Poll get(@PathVariable Long pollId) {
 		return manager.findPoll(pollId).orElseThrow();
 	}
 
 	@DeleteMapping("/{pollId}")
-	public void delete(@PathVariable UUID pollId) {
+	public void delete(@PathVariable Long pollId, @RequestParam(required = true) Long userId) {
+		// Only allow the creator to delete
+		Poll p = manager.findPoll(pollId).orElseThrow();
+		Long creatorId = p.getCreatedBy() != null ? p.getCreatedBy().getId() : null;
+		if (creatorId == null || !creatorId.equals(userId)) {
+			throw new IllegalArgumentException("Only the creator can delete this poll");
+		}
 		manager.deletePoll(pollId);
 		RawWebSocketServer.broadcast("pollsUpdated");
 	}
 
 	public static class CreatePollRequest {
-		public UUID creatorUserId;
+	public Long creatorUserId;
 		public String question;
 		public boolean publicPoll;
 		public java.time.Instant publishedAt;

@@ -2,7 +2,6 @@
 package no.hvl.Lab.Controllers;
 
 
-import java.util.UUID;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
 import org.springframework.web.bind.annotation.*;
@@ -34,17 +33,17 @@ public class UserController {
     public Collection<User> list() { return manager.allUsers(); }
 
     @GetMapping("/{userId}")
-    public User get(@PathVariable UUID userId) {
+    public User get(@PathVariable Long userId) {
         return manager.findUser(userId).orElseThrow();
     }
 
     @PutMapping("/{userId}")
-    public User update(@PathVariable UUID userId, @RequestBody CreateUserRequest req) {
+    public User update(@PathVariable Long userId, @RequestBody CreateUserRequest req) {
         return manager.registerUser(req.username, req.password, req.email);
     }
 
     @DeleteMapping("/{userId}")
-    public void delete(@PathVariable UUID userId) {
+    public void delete(@PathVariable Long userId) {
     }
 
     public static class CreateUserRequest {

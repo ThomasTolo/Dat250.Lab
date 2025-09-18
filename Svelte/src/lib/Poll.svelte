@@ -17,7 +17,7 @@
   }
   // Voting Logic: Get the current user's vote for a poll option 
   function getUserVote(optionId) {
-    const optionVotes = votes.filter(v => v.optionId === optionId);
+    const optionVotes = votes.filter(v => (v.optionId ?? (v.option && v.option.id)) === optionId);
     // Match both anonymous and non-anonymous votes for this user
     const vote = optionVotes.find(v => {
       // If anonymous, voterUserId may be null
@@ -33,13 +33,7 @@
     return vote;
   }
   // Anonymous User Handling: Generate a new UUID for each browser session
-  function generateUUID() {
-    // RFC4122 version 4 compliant UUID
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
-  }
+
   import { createEventDispatcher, onMount } from 'svelte';
   const dispatch = createEventDispatcher();
 
@@ -58,7 +52,7 @@
   // Vote Counting: Calculate net votes for each option, using only the latest vote per user
   function getNetVotes(optionId) {
     // Map: voterUserId (or 'anon') -> latest vote
-    const optionVotes = votes.filter(v => v.optionId === optionId);
+    const optionVotes = votes.filter(v => (v.optionId ?? (v.option && v.option.id)) === optionId);
     const latestVotes = {};
     for (const v of optionVotes) {
       const key = v.voterUserId || 'anon';
@@ -91,10 +85,13 @@
   // API Integration: Fetch votes for the current poll from backend
   async function fetchVotes() {
     try {
-      const res = await fetch(`/api/polls/${poll.id}/votes?userId=${voterUserId}`);
+      // Ensure poll.id and voterUserId are numbers (Long)
+      const pollId = Number(poll.id);
+      const userId = Number(voterUserId);
+      const res = await fetch(`/api/polls/${pollId}/votes?userId=${userId}`);
       if (!res.ok) throw new Error('Failed to fetch votes');
       votes = await res.json();
-      console.log('Fetched votes for poll', poll.id, votes);
+      console.log('Fetched votes for poll', pollId, votes);
     } catch (e) {
       votes = [];
       console.error('Error fetching votes', e);
@@ -140,13 +137,17 @@
       return;
     }
     try {
-      const res = await fetch(`/api/polls/${poll.id}/votes`, {
+      // Ensure poll.id, optionId, and voterUserId are numbers (Long)
+  const pollId = Number(poll.id);
+  const optionId = Number(poll.options[index].id);
+  const userId = Number(voterUserId);
+      const res = await fetch(`/api/polls/${pollId}/votes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          optionId: poll.options[index].id,
-          voterUserId,
-          anonymous: !voterUserId,
+          optionId,
+          voterUserId: userId,
+          anonymous: !userId,
           isUpvote
         })
       });
@@ -162,10 +163,10 @@
 
 <div class="poll">
   <div class="poll-header">
-    <span class="poll-id">Poll#{poll.id}</span>
+  <span class="poll-id">Poll#{poll.id}</span>
     <div class="poll-question">"{poll.question}"</div>
     <div class="poll-actions">
-      {#if poll.creatorUserId === voterUserId}
+      {#if Number(poll.creatorUserId) === Number(voterUserId)}
         <button class="delete-poll" type="button" on:click={deletePoll}>Slett poll</button>
       {/if}
     </div>
@@ -174,7 +175,7 @@
     {#if poll.options && poll.options.length > 0}
       {#each poll.options as option, i}
         <div class="poll-option-row">
-          <div class="option-text">{option.text || option.caption}</div>
+          <div class="option-text">{option.caption || option.text}</div>
           <div class="vote-buttons">
             <button class="upvote" type="button" on:click={() => vote(i, true)}>upvote</button>
             <button class="downvote" type="button" on:click={() => vote(i, false)}>downvote</button>

@@ -1,27 +1,80 @@
 
 // User Domain Model: Represents a user in the poll app
+
 package no.hvl.Lab.Domain;
+
+import jakarta.persistence.*;
+import java.io.Serializable;
 
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
+import java.util.LinkedHashSet;
 
 
 // User entity: stores user details, created polls, and votes.
 
-public class User {
-    private UUID id;
+@Entity
+@Table(name = "users")
+public class User implements Serializable {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false, updatable = false, unique = true)
+    private Long id;
+    @Column(nullable = false, unique = true)
     private String username;
-    private String password; 
+    private String password;
+    @Column(nullable = false)
     private String email;
-    private Set<UUID> createdPollIds = new HashSet<>();
-    private Set<UUID> voteIds = new HashSet<>();
+
+    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Poll> createdPolls = new HashSet<>();
+
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private Set<Poll> created = new LinkedHashSet<>();
     public User() {}
 
+    /**
+     * Creates a new User object with given username and email.
+     * The id of a new user object gets determined by the database.
+     */
+    public User(String username, String email) {
+        this.username = username;
+        this.email = email;
+        this.created = new LinkedHashSet<>();
+    }
+
+    /**
+     * Creates a new Poll object for this user
+     * with the given poll question
+     * and returns it.
+     */
+    public Poll createPoll(String question) {
+        Poll poll = new Poll();
+        poll.setQuestion(question);
+        poll.setCreatedBy(this);
+        this.createdPolls.add(poll);
+        return poll;
+    }
+
+    /**
+     * Creates a new Vote for a given VoteOption in a Poll
+     * and returns the Vote as an object.
+     */
+    public Vote voteFor(VoteOption option) {
+        Vote vote = new Vote();
+        vote.setOption(option);
+        vote.setPoll(option.getPoll());
+        vote.setVoterUserId(this.id);
+        // Optionally, add to a collection if you want to track votes by user
+        return vote;
+    }
+
     // Getters and setters
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
@@ -32,11 +85,9 @@ public class User {
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 
-    public Set<UUID> getCreatedPollIds() { return createdPollIds; }
-    public void setCreatedPollIds(Set<UUID> createdPollIds) { this.createdPollIds = createdPollIds; }
+    public Set<Poll> getCreatedPolls() { return createdPolls; }
+    public void setCreatedPolls(Set<Poll> createdPolls) { this.createdPolls = createdPolls; }
 
-    public Set<UUID> getVoteIds() { return voteIds; }
-    public void setVoteIds(Set<UUID> voteIds) { this.voteIds = voteIds; }
 
     @Override public boolean equals(Object o) {
         if (this == o) return true;

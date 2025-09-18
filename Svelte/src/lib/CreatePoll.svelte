@@ -1,7 +1,8 @@
 <script>
   // Poll Creation Component: Handles poll question and options input 
   let question = '';
-  let options = [''];
+  // Start with two option inputs by default
+  let options = ['', ''];
   let publicPoll = true;
   let publishedAt = '';
   let validUntil = '';
@@ -25,12 +26,18 @@
       alert('You must be logged in to create a poll');
       return;
     }
+    // Ensure creatorUserId is a number (Long)
+    const creatorUserId = Number(voterUserId);
     // Filter out empty options before sending
     const filteredOptions = options
       .map((caption) => caption)
       .filter(opt => opt && opt.trim() !== '');
+    if (filteredOptions.length < 2) {
+      alert('Please provide at least two options');
+      return;
+    }
     const pollData = {
-      creatorUserId: voterUserId,
+      creatorUserId,
       question,
       publicPoll,
       publishedAt: publishedAt ? new Date(publishedAt).toISOString() : null,
@@ -47,7 +54,7 @@
       });
       if (res.ok) {
         question = '';
-        options = [''];
+  options = ['', ''];
         publicPoll = true;
         publishedAt = '';
         validUntil = '';

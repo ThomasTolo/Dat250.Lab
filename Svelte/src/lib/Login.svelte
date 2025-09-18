@@ -10,12 +10,7 @@
   import { createEventDispatcher } from 'svelte';
   const dispatch = createEventDispatcher();
 
-  function generateUUID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
-  }
+
 
   async function handleLogin() {
     if (!username || !password) {
@@ -34,7 +29,9 @@
       }
       const user = await res.json();
       error = '';
-      localStorage.setItem('userId', user.id);
+  localStorage.setItem('userId', user.id);
+  // Ensure user.id is a number (Long)
+  user.id = Number(user.id);
   dispatch('login', { user });
     } catch (e) {
       error = 'Login failed';
@@ -59,7 +56,9 @@
       }
       const user = await res.json();
       error = '';
-      localStorage.setItem('userId', user.id);
+  localStorage.setItem('userId', user.id);
+  // Ensure user.id is a number (Long)
+  user.id = Number(user.id);
   dispatch('login', { user });
     } catch (e) {
       error = 'Registration failed';

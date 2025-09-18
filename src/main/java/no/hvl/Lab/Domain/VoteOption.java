@@ -1,15 +1,30 @@
 
 // VoteOption Domain Model: Represents an option in a poll
+
 package no.hvl.Lab.Domain;
 
+import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.*;
+import java.io.Serializable;
+
 import java.util.Objects;
-import java.util.UUID;
+
 
 // VoteOption entity: stores option details for a poll, including caption and order.
  
-public class VoteOption {
-    private UUID id;
-    private UUID pollId;
+@Entity
+@Table(name = "vote_options")
+public class VoteOption implements Serializable {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false, updatable = false, unique = true)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "poll_id")
+    @JsonBackReference
+    private Poll poll;
+
     private String caption;
     private int presentationOrder;
 
@@ -17,11 +32,11 @@ public class VoteOption {
     public VoteOption() {}
 
     // Getters and setters
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public UUID getPollId() { return pollId; }
-    public void setPollId(UUID pollId) { this.pollId = pollId; }
+    public Poll getPoll() { return poll; }
+    public void setPoll(Poll poll) { this.poll = poll; }
 
     public String getCaption() { return caption; }
     public void setCaption(String caption) { this.caption = caption; }
