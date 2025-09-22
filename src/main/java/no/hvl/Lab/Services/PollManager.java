@@ -1,19 +1,18 @@
 
+
 package no.hvl.Lab.Services;
 import jakarta.persistence.*;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.*;
 import no.hvl.Lab.Domain.*;
 
-@Service
-@Transactional
 public class PollManager {
-    @PersistenceContext
-       private EntityManager em;
+    private final EntityManager em;
 
-    @Transactional(readOnly = true)
+    public PollManager(EntityManager em) {
+        this.em = em;
+    }
+
     public int getNetVotesForOption(Long pollId, Long optionId) {
         Poll poll = em.find(Poll.class, pollId);
         if (poll == null) return 0;
@@ -50,7 +49,6 @@ public class PollManager {
     return u;
     }
 
-    @Transactional(readOnly = true)
     public Optional<User> loginUser(String username, String password) {
         String jpql = "SELECT u FROM User u WHERE LOWER(u.username) = :username AND u.password = :password";
         List<User> users = em.createQuery(jpql, User.class)
@@ -60,12 +58,10 @@ public class PollManager {
         return users.isEmpty() ? Optional.empty() : Optional.of(users.get(0));
     }
 
-    @Transactional(readOnly = true)
     public Optional<User> findUser(Long id) {
         User u = em.find(User.class, id);
         return Optional.ofNullable(u);
     }
-    @Transactional(readOnly = true)
     public List<User> allUsers() {
         return em.createQuery("SELECT u FROM User u", User.class).getResultList();
     }
@@ -101,12 +97,10 @@ public class PollManager {
         return p;
     }
 
-    @Transactional(readOnly = true)
     public Optional<Poll> findPoll(Long id) {
         Poll p = em.find(Poll.class, id);
         return Optional.ofNullable(p);
     }
-    @Transactional(readOnly = true)
     public List<Poll> allPolls() {
         return em.createQuery("SELECT p FROM Poll p", Poll.class).getResultList();
     }
@@ -132,19 +126,17 @@ public class PollManager {
         return v;
     }
 
-    @Transactional(readOnly = true)
+    
     public Optional<Vote> findVote(Long id) {
         Vote v = em.find(Vote.class, id);
         return Optional.ofNullable(v);
     }
 
     // Convenience queries
-    @Transactional(readOnly = true)
     public List<Poll> publicPolls() {
         return em.createQuery("SELECT p FROM Poll p WHERE p.publicPoll = true", Poll.class).getResultList();
     }
 
-    @Transactional(readOnly = true)
     public List<Poll> privatePollsVisibleTo(String username) {
     String jpql = "SELECT DISTINCT p FROM Poll p LEFT JOIN p.invitedUsernames u " +
         "WHERE p.publicPoll = false AND (u = :username OR LOWER(p.createdBy.username) = LOWER(:username))";
@@ -214,7 +206,6 @@ public class PollManager {
     }
 
     // latest per user (deduplicate by voterUserId, keep most recent)
-    @Transactional(readOnly = true)
     public List<Vote> votesForPollLatestPerUser(Long pollId) {
         String jpql = "SELECT v FROM Vote v WHERE v.poll.id = :pollId ORDER BY v.publishedAt DESC";
         List<Vote> allVotes = em.createQuery(jpql, Vote.class)
@@ -231,7 +222,6 @@ public class PollManager {
     }
 
     // Return all votes for a poll
-    @Transactional(readOnly = true)
     public List<Vote> votesForPoll(Long pollId) {
         String jpql = "SELECT v FROM Vote v WHERE v.poll.id = :pollId";
         return em.createQuery(jpql, Vote.class)
