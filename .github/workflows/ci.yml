@@ -58,7 +58,7 @@ jobs:
         run: ls -R build/test-results || true
 
       - name: Publish JUnit results
-        if: always()
+        if: always() && hashFiles('build/test-results/test/*.xml') != ''
         uses: dorny/test-reporter@v1
         with:
           name: JUnit Tests
