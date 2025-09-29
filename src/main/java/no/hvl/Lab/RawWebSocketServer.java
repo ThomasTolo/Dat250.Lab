@@ -25,7 +25,7 @@ public class RawWebSocketServer implements WebSocketConfigurer {
             try {
                 session.sendMessage(new org.springframework.web.socket.TextMessage(message));
             } catch (Exception e) {
-                // Ignore send errors
+                
             }
         }
     }
@@ -43,7 +43,6 @@ public class RawWebSocketServer implements WebSocketConfigurer {
 
         @Override
         public void handleTextMessage(WebSocketSession session, org.springframework.web.socket.TextMessage message) throws Exception {
-            // Echo the message back to the client
             session.sendMessage(message);
         }
     }

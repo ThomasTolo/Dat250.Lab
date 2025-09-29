@@ -1,5 +1,4 @@
 <script>
-  // Calculate total votes for all options
   function getTotalVotes() {
     let total = 0;
     if (!poll.options) return 0;
@@ -8,14 +7,11 @@
     }
     return total;
   }
-
-  // Calculate percentage for a given option
   function getVotePercent(optionId) {
     const total = getTotalVotes();
     if (total === 0) return 0;
     return Math.round((Math.abs(getNetVotes(optionId)) / total) * 100);
   }
-  // Voting Logic: Get the current user's vote for a poll option 
   function getUserVote(optionId) {
     const optionVotes = votes.filter(v => (v.optionId ?? (v.option && v.option.id)) === optionId);
     // Match both anonymous and non-anonymous votes for this user

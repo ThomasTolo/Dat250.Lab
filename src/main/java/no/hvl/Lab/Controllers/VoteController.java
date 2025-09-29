@@ -27,7 +27,6 @@ public class VoteController {
 
     @GetMapping
     public List<Vote> listAllVotes(@PathVariable Long pollId) {
-        // Return all votes; frontend aggregates latest-per-user
         return manager.votesForPoll(pollId);
     }
 
@@ -48,7 +47,7 @@ public class VoteController {
 
     public static class VoteRequest {
     public Long optionId;
-        public Long voterUserId; // null if anonymous
+        public Long voterUserId; 
         public boolean anonymous;
         public boolean isUpvote;
     }

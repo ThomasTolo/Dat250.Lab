@@ -1,7 +1,5 @@
 <script>
-  // Poll Creation Component: Handles poll question and options input 
   let question = '';
-  // Start with two option inputs by default
   let options = ['', ''];
   let publicPoll = true;
   let publishedAt = '';
@@ -9,7 +7,6 @@
   let maxVotesPerUser = 1;
   let invitedUsernames = '';
 
-  // Add Option: Add a new empty option field
   function addOption() {
     options = [...options, ''];
   }
@@ -20,7 +17,6 @@
 
   export let voterUserId = '';
 
-  // Create Poll: Send new poll data to backend API
   async function createPoll() {
     if (!voterUserId) {
       alert('You must be logged in to create a poll');

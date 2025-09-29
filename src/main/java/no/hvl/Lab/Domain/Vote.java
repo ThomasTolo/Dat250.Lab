@@ -1,16 +1,10 @@
-
-// Vote Domain Model: Represents a user's vote on a poll option 
-
 package no.hvl.Lab.Domain;
 
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.*;
 import java.io.Serializable;
-
 import java.time.Instant;
 
-
-// Vote entity: stores vote details for a poll option, including user, time, and up/down status.
 
 @Entity
 @Table(name = "votes")
@@ -37,7 +31,6 @@ public class Vote implements Serializable {
     private boolean isUpvote;
     public Vote() {}
 
-    // Getters and setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -61,7 +54,6 @@ public class Vote implements Serializable {
     @JsonProperty("upvote")
     public void setUpvote(boolean isUpvote) { this.isUpvote = isUpvote; }
 
-    // Flatten relationships for JSON
     @JsonProperty("pollId")
     public Long getPollId() {
         return poll != null ? poll.getId() : null;

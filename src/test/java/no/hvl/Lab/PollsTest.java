@@ -18,11 +18,7 @@ import no.hvl.Lab.Domain.Poll;
 import no.hvl.Lab.Domain.User;
 import no.hvl.Lab.Domain.VoteOption;
 import no.hvl.Lab.Domain.Vote;
-// TODO: you may have to adjust the imports to import the domain model entities
-// import no.hvl.dat250.jpa.polls.Poll;
-// import no.hvl.dat250.jpa.polls.User;
-// import no.hvl.dat250.jpa.polls.VoteOption;
-// import no.hvl.dat250.jpa.polls.Vote;
+
 
 
 public class PollsTest {

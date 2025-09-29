@@ -19,7 +19,6 @@ public class PollController {
 
 	@PostMapping
 	public Poll create(@RequestBody CreatePollRequest req, @RequestParam(required = true) Long userId) {
-		// Only allow poll creation if userId matches a registered user
 		if (!manager.findUser(userId).isPresent()) {
 			throw new IllegalArgumentException("User must be registered to create a poll");
 		}
@@ -61,7 +60,6 @@ public class PollController {
 
 	@DeleteMapping("/{pollId}")
 	public void delete(@PathVariable Long pollId, @RequestParam(required = true) Long userId) {
-		// Only allow the creator to delete
 		Poll p = manager.findPoll(pollId).orElseThrow();
 		Long creatorId = p.getCreatedBy() != null ? p.getCreatedBy().getId() : null;
 		if (creatorId == null || !creatorId.equals(userId)) {

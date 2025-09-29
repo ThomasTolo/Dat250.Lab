@@ -40,7 +40,6 @@ public class PollManager {
         return net;
     }
 
-    // Users
     public User registerUser(String username, String password, String email) {
         String jpql = "SELECT u FROM User u WHERE LOWER(u.username) = :username";
         List<User> existing = em.createQuery(jpql, User.class)
@@ -74,7 +73,6 @@ public class PollManager {
         return em.createQuery("SELECT u FROM User u", User.class).getResultList();
     }
 
-    // Polls
     public Poll createPoll(Long creatorUserId,
                            String question,
                            boolean isPublic,
@@ -113,7 +111,7 @@ public class PollManager {
         return em.createQuery("SELECT p FROM Poll p", Poll.class).getResultList();
     }
 
-    // Votes
+    
     public Vote castVote(Long pollId, Long optionId, Long voterUserId, boolean anonymous) {
         return castVote(pollId, optionId, voterUserId, anonymous, true);
     }
@@ -142,7 +140,6 @@ public class PollManager {
         return Optional.ofNullable(v);
     }
 
-    // Convenience queries
     public List<Poll> publicPolls() {
         return em.createQuery("SELECT p FROM Poll p WHERE p.publicPoll = true", Poll.class).getResultList();
     }
@@ -155,11 +152,9 @@ public class PollManager {
         .getResultList();
     }
 
-    // delete a poll and its votes
     public void deletePoll(Long pollId) {
         Poll p = em.find(Poll.class, pollId);
         if (p == null) return;
-        // Remove votes tied to this poll
         String jpql = "SELECT v FROM Vote v WHERE v.poll.id = :pollId";
         List<Vote> votes = em.createQuery(jpql, Vote.class)
                 .setParameter("pollId", pollId)
@@ -170,7 +165,6 @@ public class PollManager {
         em.remove(p);
     }
 
-    // change vote = keep only the newest vote per user for listing
     @CacheEvict(value = "poll-vote-counts", key = "#pollId")
     public Vote castOrChangeVote(Long pollId, Long optionId, Long voterUserId, boolean anonymous, boolean isUpvote) {
         Poll poll = em.find(Poll.class, pollId);
@@ -178,14 +172,12 @@ public class PollManager {
         VoteOption option = em.find(VoteOption.class, optionId);
         if (option == null) throw new NoSuchElementException("Option not found: " + optionId);
         Instant now = Instant.now();
-        // Enforce published/deadline timestamps
         if (poll.getPublishedAt() != null && now.isBefore(poll.getPublishedAt())) {
             throw new IllegalStateException("Poll not yet published");
         }
         if (poll.getValidUntil() != null && now.isAfter(poll.getValidUntil())) {
             throw new IllegalStateException("Poll deadline has passed");
         }
-        // Private poll: enforce max votes per user
         if (!poll.isPublicPoll() && poll.getMaxVotesPerUser() != null && voterUserId != null) {
             String jpql = "SELECT COUNT(v) FROM Vote v WHERE v.poll.id = :pollId AND v.voterUserId = :voterUserId";
             Long userVotes = em.createQuery(jpql, Long.class)
@@ -196,7 +188,6 @@ public class PollManager {
                 throw new IllegalStateException("Max votes per user reached");
             }
         }
-        // Find and update existing vote for this user and option
         String jpql = "SELECT v FROM Vote v WHERE v.poll.id = :pollId AND v.option.id = :optionId AND v.voterUserId = :voterUserId";
         List<Vote> existingVotes = em.createQuery(jpql, Vote.class)
                 .setParameter("pollId", pollId)
@@ -217,7 +208,6 @@ public class PollManager {
         return updatedVote;
     }
 
-    // latest per user (deduplicate by voterUserId, keep most recent)
     public List<Vote> votesForPollLatestPerUser(Long pollId) {
         String jpql = "SELECT v FROM Vote v WHERE v.poll.id = :pollId ORDER BY v.publishedAt DESC";
         List<Vote> allVotes = em.createQuery(jpql, Vote.class)
@@ -233,7 +223,6 @@ public class PollManager {
         return new ArrayList<>(latest.values());
     }
 
-    // Return all votes for a poll
     public List<Vote> votesForPoll(Long pollId) {
         String jpql = "SELECT v FROM Vote v WHERE v.poll.id = :pollId";
         return em.createQuery(jpql, Vote.class)
@@ -241,18 +230,13 @@ public class PollManager {
                 .getResultList();
     }
 
-    /**
-     * Get vote counts per option for a poll with caching support
-     * Uses Spring's @Cacheable annotation for automatic Redis caching
-     */
+    
     @Cacheable(value = "poll-vote-counts", key = "#pollId")
     public Map<Long, Integer> getVoteCountsForPoll(Long pollId) {
         return computeVoteCountsFromDatabase(pollId);
     }
 
-    /**
-     * Compute vote counts from database using the SQL query equivalent
-     */
+    
     private Map<Long, Integer> computeVoteCountsFromDatabase(Long pollId) {
         String jpql = """
             SELECT v.option.id, COUNT(v.id) 

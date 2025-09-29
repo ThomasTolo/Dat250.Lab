@@ -1,16 +1,11 @@
-
-// Poll Domain Model: Represents a poll with options, votes, and metadata
-
 package no.hvl.Lab.Domain;
 
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.*;
 import java.io.Serializable;
-
 import java.time.Instant;
 import java.util.*;
 
-// Poll entity: stores poll question, options, votes, and metadata. Used by backend and frontend for poll management and voting.
  
 @Entity
 @Table(name = "polls")
@@ -41,16 +36,7 @@ public class Poll implements Serializable {
     @JsonManagedReference
     private List<VoteOption> options = new ArrayList<>();
 
-    // Remove voteIds, handled by Vote entity
-
-    /**
-     * Adds a new option to this Poll and returns the respective
-     * VoteOption object with the given caption.
-     * The value of the presentationOrder field gets determined
-     * by the size of the currently existing VoteOptions for this Poll.
-     * I.e. the first added VoteOption has presentationOrder=0, the secondly
-     * registered VoteOption has presentationOrder=1 ans so on.
-     */
+    
     public VoteOption addVoteOption(String caption) {
         VoteOption option = new VoteOption();
         option.setCaption(caption);
@@ -60,10 +46,9 @@ public class Poll implements Serializable {
         return option;
     }
 
-    // Default constructor
+    
     public Poll() {}
 
-    // Getters and setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -88,7 +73,6 @@ public class Poll implements Serializable {
     public User getCreatedBy() { return createdBy; }
     public void setCreatedBy(User createdBy) { this.createdBy = createdBy; }
 
-    // Expose creatorUserId for the frontend without serializing the full User
     @JsonProperty("creatorUserId")
     public Long getCreatorUserId() {
         return createdBy != null ? createdBy.getId() : null;
