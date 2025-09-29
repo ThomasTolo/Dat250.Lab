@@ -2,13 +2,21 @@
 
 package no.hvl.Lab.Services;
 import jakarta.persistence.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.*;
 import no.hvl.Lab.Domain.*;
 
+@Service
+@Transactional
 public class PollManager {
     private final EntityManager em;
 
+    @Autowired
     public PollManager(EntityManager em) {
         this.em = em;
     }
@@ -110,6 +118,7 @@ public class PollManager {
         return castVote(pollId, optionId, voterUserId, anonymous, true);
     }
 
+    @CacheEvict(value = "poll-vote-counts", key = "#pollId")
     public Vote castVote(Long pollId, Long optionId, Long voterUserId, boolean anonymous, boolean isUpvote) {
         Poll poll = em.find(Poll.class, pollId);
         if (poll == null) throw new NoSuchElementException("Poll not found: " + pollId);
@@ -123,6 +132,7 @@ public class PollManager {
         v.setPublishedAt(Instant.now());
         v.setUpvote(isUpvote);
         em.persist(v);
+        
         return v;
     }
 
@@ -161,6 +171,7 @@ public class PollManager {
     }
 
     // change vote = keep only the newest vote per user for listing
+    @CacheEvict(value = "poll-vote-counts", key = "#pollId")
     public Vote castOrChangeVote(Long pollId, Long optionId, Long voterUserId, boolean anonymous, boolean isUpvote) {
         Poll poll = em.find(Poll.class, pollId);
         if (poll == null) throw new NoSuchElementException("Poll not found: " + pollId);
@@ -202,6 +213,7 @@ public class PollManager {
         } else {
             updatedVote = castVote(pollId, optionId, voterUserId, anonymous, isUpvote);
         }
+        
         return updatedVote;
     }
 
@@ -227,6 +239,40 @@ public class PollManager {
         return em.createQuery(jpql, Vote.class)
                 .setParameter("pollId", pollId)
                 .getResultList();
+    }
+
+    /**
+     * Get vote counts per option for a poll with caching support
+     * Uses Spring's @Cacheable annotation for automatic Redis caching
+     */
+    @Cacheable(value = "poll-vote-counts", key = "#pollId")
+    public Map<Long, Integer> getVoteCountsForPoll(Long pollId) {
+        return computeVoteCountsFromDatabase(pollId);
+    }
+
+    /**
+     * Compute vote counts from database using the SQL query equivalent
+     */
+    private Map<Long, Integer> computeVoteCountsFromDatabase(Long pollId) {
+        String jpql = """
+            SELECT v.option.id, COUNT(v.id) 
+            FROM Vote v 
+            WHERE v.poll.id = :pollId 
+            GROUP BY v.option.id
+            """;
+        
+        List<Object[]> results = em.createQuery(jpql, Object[].class)
+                .setParameter("pollId", pollId)
+                .getResultList();
+        
+        Map<Long, Integer> voteCounts = new HashMap<>();
+        for (Object[] result : results) {
+            Long optionId = (Long) result[0];
+            Long count = (Long) result[1];
+            voteCounts.put(optionId, count.intValue());
+        }
+        
+        return voteCounts;
     }
 
 }

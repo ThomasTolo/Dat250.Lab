@@ -22,6 +22,7 @@ repositories {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -33,6 +34,9 @@ dependencies {
     implementation("com.h2database:h2:2.3.232")
 	// Web socket
 	implementation("org.springframework.boot:spring-boot-starter-websocket")
+	// Redis for caching with Spring Data Redis
+	implementation("org.springframework.boot:spring-boot-starter-data-redis")
+	implementation("org.springframework.boot:spring-boot-starter-cache")
 	
 }
 

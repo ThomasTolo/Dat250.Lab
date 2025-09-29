@@ -54,6 +54,11 @@ public class PollController {
 		return manager.findPoll(pollId).orElseThrow();
 	}
 
+	@GetMapping("/{pollId}/vote-counts")
+	public Map<Long, Integer> getVoteCounts(@PathVariable Long pollId) {
+		return manager.getVoteCountsForPoll(pollId);
+	}
+
 	@DeleteMapping("/{pollId}")
 	public void delete(@PathVariable Long pollId, @RequestParam(required = true) Long userId) {
 		// Only allow the creator to delete
