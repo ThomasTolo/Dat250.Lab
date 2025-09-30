@@ -66,20 +66,25 @@
   }
 </script>
 
-<div class="login-box">
-  <h2>{isLogin ? 'Login' : 'Register'}</h2>
-  <div class="toggle-box">
-    <button class:active={isLogin} on:click={() => { isLogin = true; error = ''; }}>Login</button>
-    <button class:active={!isLogin} on:click={() => { isLogin = false; error = ''; }}>Register</button>
+<div class="login-box fade-in" aria-labelledby="login-heading">
+  <h2 id="login-heading">{isLogin ? 'Login' : 'Register'}</h2>
+  <div class="toggle-box" role="tablist">
+    <button class:active={isLogin} role="tab" aria-selected={isLogin} on:click={() => { isLogin = true; error = ''; }}>Login</button>
+    <button class:active={!isLogin} role="tab" aria-selected={!isLogin} on:click={() => { isLogin = false; error = ''; }}>Register</button>
   </div>
-  <input type="text" bind:value={username} placeholder="Username" />
-  <input type="password" bind:value={password} placeholder="Password" />
-  {#if !isLogin}
-    <input type="email" bind:value={email} placeholder="Email" />
-  {/if}
+  <div class="fields">
+    <label class="sr-only" for="login-username">Username</label>
+    <input id="login-username" type="text" bind:value={username} placeholder="Username" autocomplete="username" />
+    <label class="sr-only" for="login-password">Password</label>
+    <input id="login-password" type="password" bind:value={password} placeholder="Password" autocomplete="current-password" />
+    {#if !isLogin}
+      <label class="sr-only" for="login-email">Email</label>
+      <input id="login-email" type="email" bind:value={email} placeholder="Email" autocomplete="email" />
+    {/if}
+  </div>
   <button on:click={isLogin ? handleLogin : handleRegister}>{isLogin ? 'Login' : 'Register'}</button>
   {#if error}
-    <div class="error">{error}</div>
+    <div class="error" role="alert">{error}</div>
   {/if}
 </div>
 
@@ -141,4 +146,6 @@
   color: #f44336;
   margin-top: 0.5em;
 }
+.fields { display:flex; flex-direction:column; gap:.55rem; }
+.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
 </style>

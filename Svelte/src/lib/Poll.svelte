@@ -157,151 +157,48 @@
   }
 </script>
 
-<div class="poll">
+<div class="poll fade-in">
   <div class="poll-header">
-  <span class="poll-id">Poll#{poll.id}</span>
-    <div class="poll-question">"{poll.question}"</div>
+    <span class="poll-id">P#{poll.id || '—'}</span>
+    <div class="poll-question">{poll.question || 'Untitled poll'}</div>
     <div class="poll-actions">
       {#if Number(poll.creatorUserId) === Number(voterUserId)}
-        <button class="delete-poll" type="button" on:click={deletePoll}>Slett poll</button>
+        <button class="delete-poll" type="button" on:click={deletePoll} aria-label="Delete poll">Delete</button>
       {/if}
     </div>
   </div>
   <div class="poll-options">
     {#if poll.options && poll.options.length > 0}
-      {#each poll.options as option, i}
-        <div class="poll-option-row">
-          <div class="option-text">{option.caption || option.text}</div>
+      {#each poll.options as option, i (option.id)}
+        {#key option.id}
+        <div class="poll-option-row fade-in">
+          <div class="option-text">{option.caption || option.text || '—'}</div>
           <div class="vote-buttons">
-            <button class="upvote" type="button" on:click={() => vote(i, true)}>upvote</button>
-            <button class="downvote" type="button" on:click={() => vote(i, false)}>downvote</button>
+            <button class="upvote" type="button" on:click={() => vote(i, true)}>Upvote</button>
+            <button class="downvote" type="button" on:click={() => vote(i, false)}>Downvote</button>
           </div>
           <div class="votes">
-            <span style="color:#2196f3; font-weight:bold">
-              {getNetVotes(option.id)}{Math.abs(getNetVotes(option.id)) === 1 ? ' Vote' : ' Votes'}
-            </span>
-            <span style="margin-left:1em; color:#4caf50; font-weight:bold;">
-              {getVotePercent(option.id)}%
-            </span>
+            <span>{getNetVotes(option.id)}{Math.abs(getNetVotes(option.id)) === 1 ? ' vote' : ' votes'}</span>
+            <span>{getVotePercent(option.id)}%</span>
             {#if getUserVote(option.id)}
-              <span style="margin-left:1em; color:#888; font-size:0.95em;">
-                You {getUserVote(option.id).upvote ? 'upvoted' : 'downvoted'}
-              </span>
+              <span>You {getUserVote(option.id).upvote ? 'upvoted' : 'downvoted'}</span>
             {/if}
           </div>
+          <div class="progress-shell">
+            <div class="progress-fill" style={`--w:${getVotePercent(option.id)}%`}></div>
+          </div>
         </div>
+        {/key}
       {/each}
     {:else}
-      <div class="poll-option-row">Ingen alternativer tilgjengelig.</div>
+      <div class="poll-option-row">No options available.</div>
     {/if}
   </div>
-  <div class="poll-deadline" style="margin-top:1em; text-align:right; color:#aaa; font-size:0.95em;">
-    Deadline: {poll.validUntil ? new Date(poll.validUntil).toLocaleString() : 'N/A'}
-  </div>
+  <div class="poll-deadline">Deadline: {poll.validUntil ? new Date(poll.validUntil).toLocaleString() : 'N/A'}</div>
 </div>
 
 <style>
-.poll {
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 1em;
-  max-width: 500px;
-  margin: 2em auto;
-}
-.poll-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1em;
-}
-.poll-actions {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-}
-.poll-id {
-  background: #2196f3;
-  color: #fff;
-  padding: 0.3em 1em;
-  border-radius: 8px 8px 0 0;
-  font-weight: bold;
-  margin-right: 1em;
-}
-.poll-question {
-  background: #fff3cd;
-  color: #856404;
-  padding: 0.5em 1em;
-  border-radius: 8px;
-  font-style: italic;
-}
-.poll-options {
-  margin-top: 1em;
-}
-.poll-option-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #fff;
-  color: #222;
-  border-radius: 8px;
-  margin-bottom: 0.5em;
-  padding: 0.5em 1em;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-.option-text {
-  flex: 2;
-  font-size: 1.1em;
-  font-weight: 500;
-  color: #222;
-}
-.vote-buttons {
-  display: flex;
-  gap: 0.5em;
-}
-.upvote, .downvote {
-  min-width: 90px;
-  padding: 0.3em 0;
-  font-size: 1em;
-  font-weight: 600;
-  border-radius: 4px;
-  border: none;
-  cursor: pointer;
-}
-.upvote {
-  background: #4caf50;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(76,175,80,0.15);
-}
-.downvote {
-  background: #f44336;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(244,67,54,0.15);
-}
-.votes {
-  flex: 1;
-  text-align: right;
-  color: #2196f3;
-  font-weight: bold;
-  font-size: 1em;
-}
-.upvote {
-  background: #4caf50;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  margin-right: 0.5em;
-  padding: 0.3em 1em;
-}
-.downvote {
-  background: #f44336;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  margin-right: 0.5em;
-  padding: 0.3em 1em;
-}
-.votes {
-  color: #2196f3;
-  font-weight: bold;
-}
+/* Removed old styles in favor of global system; keep minimal overrides if needed */
+.delete-poll { background: linear-gradient(92deg, var(--danger), #7d0a18); color:#fff; }
+.delete-poll:hover { filter: brightness(1.05); }
 </style>

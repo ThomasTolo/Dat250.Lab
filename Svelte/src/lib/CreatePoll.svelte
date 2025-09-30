@@ -66,42 +66,55 @@
   }
 </script>
 
-<div class="create-poll">
-  <h2>Create a New Poll</h2>
-  <input type="text" bind:value={question} placeholder="Poll question" />
-  <div>
-    {#each options as option, i}
-      <input type="text" bind:value={options[i]} placeholder={`Option ${i + 1}`} />
-    {/each}
-    <button on:click={addOption}>Add Option</button>
+<div class="create-poll fade-in" aria-labelledby="create-poll-heading">
+  <h2 id="create-poll-heading">Create a New Poll</h2>
+  <div class="options-group">
+    <label class="sr-only" for="poll-question">Question</label>
+    <input id="poll-question" type="text" bind:value={question} placeholder="Poll question" autocomplete="off" />
+    <div class="options-stack">
+      {#each options as option, i}
+        <input type="text" bind:value={options[i]} placeholder={`Option ${i + 1}`} />
+      {/each}
+      <button type="button" class="add-option" on:click={addOption}>+ Add Option</button>
+    </div>
   </div>
-  <label><input type="checkbox" bind:checked={publicPoll} /> {publicPoll ? 'Public poll' : 'Private poll'}</label>
-  <div>
-    <label>Published at: <input type="datetime-local" bind:value={publishedAt} /></label>
-    <label>Deadline: <input type="datetime-local" bind:value={validUntil} /></label>
+  <div class="inline toggles">
+    <label class="toggle">
+      <input type="checkbox" bind:checked={publicPoll} />
+      <span>{publicPoll ? 'Public poll' : 'Private poll'}</span>
+    </label>
+  </div>
+  <div class="inline datetimes">
+    <label>Published at
+      <input type="datetime-local" bind:value={publishedAt} />
+    </label>
+    <label>Deadline
+      <input type="datetime-local" bind:value={validUntil} />
+    </label>
   </div>
   {#if !publicPoll}
-    <label>Max votes per user: <input type="number" min="1" bind:value={maxVotesPerUser} /></label>
-    <label>Invited usernames (comma separated): <input type="text" bind:value={invitedUsernames} /></label>
+    <div class="inline private-meta">
+      <label>Max votes/user
+        <input type="number" min="1" bind:value={maxVotesPerUser} />
+      </label>
+      <label>Invited usernames
+        <input type="text" bind:value={invitedUsernames} placeholder="user1, user2" />
+      </label>
+    </div>
   {/if}
-  <button on:click={createPoll}>Create Poll</button>
+  <div class="actions">
+    <button type="button" on:click={createPoll}>Create Poll</button>
+  </div>
 </div>
 
 <style>
-.create-poll {
-  border: 1px solid #ccc;
-  padding: 1em;
-  border-radius: 8px;
-  max-width: 400px;
-  margin: 2em auto;
-}
-.create-poll input {
-  display: block;
-  margin-bottom: 0.5em;
-  width: 100%;
-  padding: 0.5em;
-}
-.create-poll button {
-  margin-top: 1em;
-}
+.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+.options-stack { display:flex; flex-direction:column; gap:.55rem; }
+.inline { gap:1rem; }
+.inline label { display:flex; flex-direction:column; font-size:.7rem; letter-spacing:.75px; text-transform:uppercase; color:var(--text-secondary); font-weight:600; gap:.4rem; }
+.toggle { display:flex; align-items:center; gap:.55rem; font-size:.8rem; letter-spacing:.5px; }
+.toggle input { width:auto; }
+.actions { display:flex; justify-content:flex-end; margin-top:.75rem; }
+.add-option { font-size:.7rem; letter-spacing:.75px; background:rgba(255,255,255,0.08); color:var(--accent); box-shadow:none; padding:.5em .9em; }
+.add-option:hover { background:rgba(255,255,255,0.15); }
 </style>
