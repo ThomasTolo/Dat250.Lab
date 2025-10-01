@@ -23,6 +23,7 @@ public class VoteOption implements Serializable {
     private String caption;
     private int presentationOrder;
 
+
     public VoteOption() {}
 
     public Long getId() { return id; }
@@ -36,6 +37,7 @@ public class VoteOption implements Serializable {
 
     public int getPresentationOrder() { return presentationOrder; }
     public void setPresentationOrder(int presentationOrder) { this.presentationOrder = presentationOrder; }
+
 
     @Override public boolean equals(Object o) {
         if (this == o) return true;

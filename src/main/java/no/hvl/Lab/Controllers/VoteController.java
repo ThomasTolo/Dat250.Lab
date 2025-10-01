@@ -6,9 +6,11 @@ import org.springframework.web.bind.annotation.*;
 
 import no.hvl.Lab.Domain.Vote;
 import no.hvl.Lab.Services.PollManager;
+import no.hvl.Lab.Services.PollEventMessagingService;
 import no.hvl.Lab.RawWebSocketServer;
 
 import java.util.List;
+import java.util.Locale;
 
 
 @CrossOrigin
@@ -16,13 +18,27 @@ import java.util.List;
 @RequestMapping("/api/polls/{pollId}/votes")
 public class VoteController {
     private final PollManager manager;
-    public VoteController(PollManager manager) { this.manager = manager; }
+    private final PollEventMessagingService messagingService;
+    public VoteController(PollManager manager, PollEventMessagingService messagingService) {
+        this.manager = manager; this.messagingService = messagingService; }
 
     @PostMapping
     public Vote cast(@PathVariable Long pollId, @RequestBody VoteRequest req) {
-        Vote vote = manager.castOrChangeVote(pollId, req.optionId, req.voterUserId, req.anonymous, req.isUpvote);
-        RawWebSocketServer.broadcast("votesUpdated");
-        return manager.findVote(vote.getId()).orElse(vote);
+    Vote vote = manager.castOrChangeVote(pollId, req.optionId, req.voterUserId, req.anonymous, req.isUpvote);
+    // Publish to broker (anonymous flag supported; voterUserId may be null)
+    messagingService.publishVoteEvent(pollId, req.optionId, req.voterUserId, req.anonymous, req.isUpvote);
+        Vote persisted = manager.findVote(vote.getId()).orElse(vote);
+        // Broadcast a compact JSON delta so clients can update without refetching everything.
+        String payload = String.format(Locale.ROOT,
+                "{\"type\":\"vote-delta\",\"pollId\":%d,\"optionId\":%d,\"voteId\":%d,\"upvote\":%s,\"voterUserId\":%s,\"ts\":%d}",
+                persisted.getPollId(),
+                persisted.getOptionId(),
+                persisted.getId(),
+                persisted.isUpvote(),
+                persisted.getVoterUserId() == null ? "null" : persisted.getVoterUserId().toString(),
+                System.currentTimeMillis());
+        RawWebSocketServer.broadcast(payload);
+        return persisted;
     }
 
     @GetMapping

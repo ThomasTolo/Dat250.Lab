@@ -6,6 +6,7 @@ import no.hvl.Lab.RawWebSocketServer;
 import no.hvl.Lab.Domain.Poll;
 import no.hvl.Lab.Domain.VoteOption;
 import no.hvl.Lab.Services.PollManager;
+import no.hvl.Lab.Services.PollEventMessagingService;
 
 import java.util.*;
 
@@ -15,7 +16,9 @@ import java.util.*;
 @RequestMapping("/api/polls")
 public class PollController {
 	private final PollManager manager;
-	public PollController(PollManager manager) { this.manager = manager; }
+	private final PollEventMessagingService messagingService;
+	public PollController(PollManager manager, PollEventMessagingService messagingService) {
+		this.manager = manager; this.messagingService = messagingService; }
 
 	@PostMapping
 	public Poll create(@RequestBody CreatePollRequest req, @RequestParam(required = true) Long userId) {
@@ -33,6 +36,8 @@ public class PollController {
 			req.options
 		);
 		RawWebSocketServer.broadcast("pollsUpdated");
+		// Publish a proper poll-created event (no fake vote) so external consumers can subscribe.
+		messagingService.publishPollCreated(poll.getId());
 		return poll;
 	}
 

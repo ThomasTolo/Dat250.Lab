@@ -188,12 +188,21 @@ public class PollManager {
                 throw new IllegalStateException("Max votes per user reached");
             }
         }
+    List<Vote> existingVotes;
+    if (voterUserId == null) {
+        String jpqlAnon = "SELECT v FROM Vote v WHERE v.poll.id = :pollId AND v.option.id = :optionId AND v.voterUserId IS NULL";
+        existingVotes = em.createQuery(jpqlAnon, Vote.class)
+            .setParameter("pollId", pollId)
+            .setParameter("optionId", optionId)
+            .getResultList();
+    } else {
         String jpql = "SELECT v FROM Vote v WHERE v.poll.id = :pollId AND v.option.id = :optionId AND v.voterUserId = :voterUserId";
-        List<Vote> existingVotes = em.createQuery(jpql, Vote.class)
-                .setParameter("pollId", pollId)
-                .setParameter("optionId", optionId)
-                .setParameter("voterUserId", voterUserId)
-                .getResultList();
+        existingVotes = em.createQuery(jpql, Vote.class)
+            .setParameter("pollId", pollId)
+            .setParameter("optionId", optionId)
+            .setParameter("voterUserId", voterUserId)
+            .getResultList();
+    }
         Vote updatedVote = null;
         if (!existingVotes.isEmpty()) {
             updatedVote = existingVotes.get(0);

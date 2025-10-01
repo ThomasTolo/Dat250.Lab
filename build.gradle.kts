@@ -37,6 +37,8 @@ dependencies {
 	// Redis for caching with Spring Data Redis
 	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 	implementation("org.springframework.boot:spring-boot-starter-cache")
+    // Messaging (RabbitMQ / AMQP)
+    implementation("org.springframework.boot:spring-boot-starter-amqp")
 	
 }
 

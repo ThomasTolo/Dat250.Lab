@@ -1,5 +1,8 @@
 {
   "dependencies": {
     "svelte": "^5.38.10"
+  },
+  "devDependencies": {
+    "svelte-confetti": "^2.3.2"
   }
 }
