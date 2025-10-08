@@ -42,7 +42,7 @@ Hvorfor: Gir fart når mange brukere spør om det samme.
 ## 5. RabbitMQ (Meldingskø)
 RabbitMQ er et system for å sende meldinger mellom deler av løsningen.
 - Backend publiserer en melding når noen stemmer eller lager en poll.
-- Lyttere («listeners») tar imot meldingen og kan gjøre noe: lagre, sende videre, oppdatere WebSocket.
+- Lyttere tar imot meldingen og kan gjøre noe: lagre, sende videre, oppdatere WebSocket.
 - Meldingene har «routing key» som f.eks. `poll.3` (poll med id 3).
 
 Hvorfor: Løsner koblingen mellom ting. Andre systemer kan koble seg på senere uten å endre kjernen.
