@@ -47,6 +47,12 @@ tasks.withType<Test> {
     finalizedBy("jacocoTestReport")
 }
 
+// Ensure parameter names are preserved at compile time so Spring can resolve
+// controller method parameter names without explicit annotation values.
+tasks.withType<org.gradle.api.tasks.compile.JavaCompile> {
+    options.compilerArgs.add("-parameters")
+}
+
 tasks.named<JacocoReport>("jacocoTestReport") {
     dependsOn(tasks.test)
     reports {

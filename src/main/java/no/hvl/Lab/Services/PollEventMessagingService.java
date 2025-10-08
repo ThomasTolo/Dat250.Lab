@@ -16,11 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Handles publishing and consuming poll vote events via RabbitMQ. Event format:
- *   {"type":"vote","pollId":1,"optionId":5,"upvote":true,"anonymous":false,"voterUserId":123}
- * Anonymous votes may omit voterUserId (null) and are stored with null user id.
- */
+
 @Service
 public class PollEventMessagingService {
     private static final Logger log = LoggerFactory.getLogger(PollEventMessagingService.class);
@@ -60,25 +56,19 @@ public class PollEventMessagingService {
 
     private String perPollQueueName(Long pollId) { return "poll-" + pollId; }
 
-    /**
-     * Create (idempotently) a dedicated durable queue for this poll and bind it to the exchange
-     * with the exact routing key (poll.<id>). The application still consumes from the shared
-     * wildcard queue, but this gives external consumers a stable queue to subscribe to, fulfilling
-     * the "topic per poll" requirement more literally.
-     */
+    
     public void ensurePerPollQueue(Long pollId) {
         try {
             String qName = perPollQueueName(pollId);
             Queue q = new Queue(qName, true, false, false);
-            rabbitAdmin.declareQueue(q); // idempotent
+            rabbitAdmin.declareQueue(q);
             Binding b = new Binding(qName, DestinationType.QUEUE, RabbitConfig.EXCHANGE_NAME, routingKeyFor(pollId), null);
-            rabbitAdmin.declareBinding(b); // idempotent
+            rabbitAdmin.declareBinding(b);
         } catch (Exception e) {
             log.warn("Failed to declare per-poll queue for poll {}", pollId, e);
         }
     }
 
-    // Consume all poll events from the single queue; parse and persist.
     @RabbitListener(queues = RabbitConfig.EVENTS_QUEUE)
     public void onPollEvent(String body) {
         try {
@@ -89,13 +79,12 @@ public class PollEventMessagingService {
             if (t == null) return;
             switch (t) {
                 case "PollCreated", "pollCreated" -> {
-                    // Nothing required now; could warm caches.
                 }
                 case "Vote", "vote" -> {
                     VoteEvent v = mapper.readValue(body, VoteEvent.class);
-                    if (v.pollId == null || v.optionId == null || v.optionId <= 0) return; // guard invalid
+                    if (v.pollId == null || v.optionId == null || v.optionId <= 0) return; 
                     Vote persisted = pollManager.castOrChangeVote(v.pollId, v.optionId, v.voterUserId, v.anonymous != null && v.anonymous, v.upvote != null && v.upvote);
-                    // Only broadcast to WebSocket clients if NOT internally originated (avoid duplicate deltas)
+                    // Only broadcast to WebSocket clients if NOT internally originated 
                     if (v.source == null || !"app".equalsIgnoreCase(v.source)) {
                         String payload = String.format(java.util.Locale.ROOT,
                                 "{\"type\":\"vote-delta\",\"pollId\":%d,\"optionId\":%d,\"voteId\":%d,\"upvote\":%s,\"voterUserId\":%s,\"ts\":%d}",
@@ -115,7 +104,6 @@ public class PollEventMessagingService {
         }
     }
 
-    // ----- DTOs -----
     static class BaseEvent { public String type; }
     static class PollCreated extends BaseEvent { public Long pollId; public String source; }
     static class VoteEvent extends BaseEvent { public Long pollId; public Long optionId; public Boolean upvote; public Boolean anonymous; public Long voterUserId; public String source; }
