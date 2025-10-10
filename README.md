@@ -1,3 +1,29 @@
+## Repository - Quick overview & navigation
+
+This repository contains a small full-stack example showing how a Svelte frontend, a Spring Boot backend, and supporting services (H2, Redis, RabbitMQ) can work together. It's organized so each part can be developed and run independently or together using Docker Compose.
+
+Top-level layout (where to find things):
+
+- `backend` / Java sources — The repository places the Spring Boot source tree under `src/main/java/no/hvl/Lab/` (look for `LabApplication.java`, controllers, services and WebSocket code there). Application resources are under `src/main/resources/` (application.properties, static files, META-INF). The root Gradle files (`build.gradle.kts`, `settings.gradle.kts`, `gradlew`) live at the repository root and build the project from this `src` layout.
+- `frontend/` — Svelte + Vite single page app. UI components and static assets are here (`src/`, `public/`).
+- `docker-compose.yml` — Compose file that brings up the backend, Redis and RabbitMQ for a local integration environment.
+- `Dockerfile` — Multi-stage Dockerfile used to build the backend image.
+- `build.gradle.kts`, `settings.gradle.kts`, `gradlew` — Gradle build for the backend.
+
+Quick navigation / how to run:
+
+- Local development (backend):
+   - From the repository root run: `./gradlew bootRun` to start the Spring Boot server.
+- Local development (frontend):
+   - Change to `frontend/` and run `npm install` then `npm run dev` to start the Vite dev server.
+- With Docker Compose (recommended for consistent setup):
+   - Build and start everything: `docker compose up --build`
+   - App: http://localhost:8080
+   - RabbitMQ UI: http://localhost:15672 (user `guest` / pass `guest`)
+
+See the full project explanation below for details on architecture, components and usage.
+
+
 ## Project – Simple Explanation (In English)
 
 The goal is to show how a small app can be built with several parts working together: backend (Spring Boot), frontend (Svelte), databases (H2 and Redis), messaging (RabbitMQ), and running in Docker.
