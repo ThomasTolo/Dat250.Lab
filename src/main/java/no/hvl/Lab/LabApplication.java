@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class LabApplication {
     public static void main(String[] args) {
+      // redis
+      // rabbitmq
+      
       SpringApplication.run(LabApplication.class, args);
   
     }

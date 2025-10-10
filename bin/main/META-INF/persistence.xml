@@ -22,6 +22,20 @@
             <property name="hibernate.format_sql" value="true"/>
             <property name="hibernate.highlight_sql" value="true"/>
 
+          
+            <property name="spring.rabbitmq.host" value="localhost"/>
+            <property name="spring.rabbitmq.port" value="5672"/>
+            <property name="spring.rabbitmq.username" value="guest"/>
+            <property name="spring.rabbitmq.password" value="guest"/>
+            <property name="spring.rabbitmq.virtual-host" value="/"/>
+
+            
+            <property name="spring.data.redis.host" value="localhost"/>
+            <property name="spring.data.redis.port" value="6379"/>
+            <property name="spring.data.redis.password" value=""/>
+            <property name="spring.data.redis.timeout" value="2000ms"/>
+
+
         </properties>
     </persistence-unit>
 </persistence>
