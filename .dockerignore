@@ -1,0 +1,30 @@
+# Gradle
+.gradle/
+build/
+**/build/
+
+# Node/Frontend
+node_modules/
+**/node_modules/
+.npm/
+Frontend/node_modules/
+Frontend/build/
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Git
+.git/
+.gitignore
+
+# Logs
+*.log
+
+# Other
+tmp/
+**/.classpath
+**/.project
+**/.settings/

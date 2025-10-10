@@ -1,6 +1,6 @@
 ## Prosjekt – Enkel Forklaring (På Norsk)
 
-Målet her er å vise hvordan en liten app kan bygges med flere deler som jobber sammen: backend (Spring Boot), frontend (Svelte), databaser (H2 og Redis), meldinger (RabbitMQ), og kjøring i Docker. Alt forklart veldig enkelt for en som er ny.
+Målet her er å vise hvordan en liten app kan bygges med flere deler som jobber sammen: backend (Spring Boot), frontend (Svelte), databaser (H2 og Redis), meldinger (RabbitMQ), og kjøring i Docker.
 
 ---
 ## 1. Backend (Spring Boot)
@@ -25,7 +25,7 @@ Hvorfor: Svelte er lett å lære, og gir rask og liten kode i nettleseren.
 ## 3. H2 Database (SQL i minnet)
 H2 er en liten database som kjører i minnet når vi utvikler.
 - Lagrer brukere, polls, alternativer og stemmer.
-- Forsvinner når appen stoppes (med mindre vi konfigurerer lagring til fil).
+- Forsvinner når appen stoppes.
 
 Hvorfor: Superrask å komme i gang med. Ingen installasjon nødvendig.
 
@@ -45,7 +45,7 @@ RabbitMQ er et system for å sende meldinger mellom deler av løsningen.
 - Lyttere tar imot meldingen og kan gjøre noe: lagre, sende videre, oppdatere WebSocket.
 - Meldingene har «routing key» som f.eks. `poll.3` (poll med id 3).
 
-Hvorfor: Løsner koblingen mellom ting. Andre systemer kan koble seg på senere uten å endre kjernen.
+Hvorfor: Løsner koblingen mellom ting. Andre systemer kan koble seg på senere uten å endre kjernen.   
 
 Enkel flyt:
 1. Bruker stemmer i frontend.
@@ -72,14 +72,14 @@ I stedet for at frontend spør hele tiden, kan backend pushe beskjed: «Noen ste
 ## 8. Logikken – Hvordan ting henger sammen
 
 Kort beskrivelse av hovedflyten:
-- Bruker lager poll → backend lagrer i DB → sender PollCreated‑melding → lytter mottar → (kan forberede ting / sende info)
-- Bruker stemmer → backend lagrer i DB → sender Vote‑melding → lytter mottar → sender WebSocket oppdatering → frontend viser nytt stemmetall
+- Bruker lager poll -> backend lagrer i DB -> sender PollCreated‑melding -> lytter mottar -> (kan forberede ting / sende info)
+- Bruker stemmer -> backend lagrer i DB -> sender Vote‑melding -> lytter mottar -> sender WebSocket oppdatering -> frontend viser nytt stemmetall 
 
 Nøkkelidé: Vi separerer «hendelse skjer» (publisere melding) fra «hva vi gjør med det» (lytter). Dette gjør det lett å legge til nye reaksjoner senere (f.eks. statistikk‑tjeneste) uten å endre kjernefunksjonene.
 
 ---
 ## 9. Hvorfor denne arkitekturen?
-- Lett å bytte ut én del (f.eks. bytte H2 med Postgres) uten å knuse resten.
+- Lett å bytte ut én del (f.eks. bytte H2 med Postgres) uten å fjerne resten.
 - Meldinger via RabbitMQ gjør systemet mer fleksibelt og skalerbart.
 - Frontend og backend kan utvikles separat.
 - WebSocket gir live følelse.
@@ -87,23 +87,50 @@ Nøkkelidé: Vi separerer «hendelse skjer» (publisere melding) fra «hva vi gj
 
 ---
 ## 10. Hvordan kjøre (enkelt)
+Du kan kjøre appen på to måter: vanlig (lokalt) eller med Docker/Compose.
+
+### A) Lokalt
 1. Start RabbitMQ (f.eks. med Docker image `rabbitmq:3.13-management`).
 2. Kjør backend:
+
+	```sh
 	./gradlew bootRun
-3. Kjør frontend (inne i Frontend/):
+	```
+
+3. Kjør frontend (inne i `Frontend/`):
+
+	```sh
 	npm install
 	npm run dev
-4. Åpne nettleser på adressen som vises (f.eks. http://localhost:5173).
+	```
+
+4. Åpne nettleser (f.eks. http://localhost:5173).
+
+### B) Med Docker/Compose (anbefalt for lik oppsett)
+1. Bygg og start alt:
+
+	```sh
+	docker compose up --build
+	```
+
+2. Besøk:
+	- App: http://localhost:8080
+	- H2 Console: http://localhost:8080/h2-console (JDBC URL: `jdbc:h2:mem:polls`, bruker `sa`)
+
+
+3. Stoppe alt:
+
+	```sh
+	docker compose down
+	```
 
 Test meldinger uten CLI:
 - Publiser stemme: POST til /admin/publish/vote
 - Se køstatus: GET /admin/queues/poll-events
 
----
 ## 11. Videre forbedringer (idéer)
 - Legge på ekte database (Postgres/MySQL).
 - Legge på sikkerhet (innlogging, roller).
-- Legge på metrikker (Prometheus / Grafana).
 - Egen tjeneste for analyser av stemmer.
 
 ---
